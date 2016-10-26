@@ -1,0 +1,37 @@
+image: node:6.7.0
+
+cache:
+  paths:
+    - node_modules/
+
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  script:
+    - echo "StrictHostKeyChecking no " > /root/.ssh/config
+    - npm --registry=https://registry.npm.taobao.org install
+    - npm run compile
+  only:
+    - master
+  tags:
+    - build-node
+
+deploy:
+  stage: deploy
+  script:
+    - cd /home/ops/production/mdGateway
+    - git checkout master
+    - git reset --hard HEAD
+    - git pull
+    - npm --registry=https://registry.npm.taobao.org install
+    - rm -Rf dist
+    - npm run compile
+    - pm2 restart mdGateway
+  only:
+    - master
+  tags:
+    - deploy-ssh

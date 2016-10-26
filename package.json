@@ -1,0 +1,39 @@
+{
+  "name": "md-gateway",
+  "version": "1.0.0",
+  "description": "Market data gateway",
+  "main": "dist/app.js",
+  "scripts": {
+    "start": "node dist/app",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "rm -rf ./dist && babel src --out-dir dist --copy-files"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@code.invesmart.net:8800/smartwin/mdGateway.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-eslint": "^7.0.0",
+    "babel-plugin-transform-async-to-generator": "^6.16.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.14.0",
+    "eslint": "^3.8.1",
+    "eslint-config-airbnb": "^12.0.0",
+    "eslint-plugin-babel": "^3.3.0",
+    "eslint-plugin-import": "^1.16.0",
+    "eslint-plugin-jsx-a11y": "^2.2.3",
+    "eslint-plugin-react": "^6.4.1"
+  },
+  "dependencies": {
+    "babel-register": "^6.16.3",
+    "bluebird": "^3.4.6",
+    "debug": "^2.2.0",
+    "grpc": "^1.0.1-pre1",
+    "jsonwebtoken": "^7.1.9",
+    "mongodb": "^2.2.10",
+    "sw-datafeed-icelive": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icelive.git#v1.0.5",
+    "through2": "^2.0.1"
+  }
+}
