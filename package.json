@@ -1,5 +1,5 @@
 {
-  "name": "md-gateway",
+  "name": "market-data-gateway",
   "version": "1.0.0",
   "description": "Market data gateway",
   "main": "dist/app.js",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@code.invesmart.net:8800/smartwin/mdGateway.git"
+    "url": "ssh://git@code.invesmart.net:8800/smartwin/marketDataGateway.git"
   },
   "author": "",
   "license": "ISC",
@@ -27,6 +27,7 @@
     "eslint-plugin-react": "^6.4.1"
   },
   "dependencies": {
+    "acl": "^0.4.9",
     "babel-register": "^6.16.3",
     "bluebird": "^3.4.6",
     "debug": "^2.2.0",

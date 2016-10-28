@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package liveMarketDataPackage;
+
+service SmartwinFuturesService {
+  rpc StreamMarketDepth(stream SubscribeMarketDepth) returns (stream MarketDepth) {}
+  rpc StreamBar(stream SubscribeBar) returns (stream Bar) {}
+
+  // rpc UnsubscribeMarketData(stream UnsubscribeMarketData) returns (Empty) {}
+
+  rpc getLastMarketDepths(getLastMarketDepths) returns (LastMarketDepthsResponse) {}
+  rpc getLastBars(getLastBars) returns (LastBarsResponse) {}
+}
+
+message Empty {
+}
+
+message SubscribeMarketDepth {
+  Instrument instrument = 1;
+}
+
+message SubscribeBar {
+  Instrument instrument = 1;
+  string resolution = 2;
+}
+
+message Instrument {
+  string symbol = 1;
+}
+
+message getLastMarketDepths {
+  repeated Instrument instruments = 1;
+}
+
+message getLastBars {
+  repeated Instrument instruments = 1;
+}
+
+message LastMarketDepthsResponse {
+  repeated MarketDepth marketDepths = 1;
+}
+
+message LastBarsResponse {
+  repeated Bar bars = 1;
+}
+
+message MarketDepth {
+  string timestamp = 1; // TradeDay+hh24mi0
+  double high = 2; // 最高价
+  double low = 3; // 最低价
+  double open = 4; // 开盘价
+  double close = 5; // 收盘价
+  double average = 6; // 日均价
+  int32	volume = 7; // 成交量
+  double turnover = 8; // 成交额
+  double settlement = 9; // 结算价
+  double openInterest = 10; // 持仓量 未平仓合
+  double preSettlement = 11; // 上次结算价
+  double preClose = 12; // 昨收盘
+  double preoOpenInterest = 13;	// 昨持仓量
+  double price = 14; // 当前价
+  double upperLimit = 15; // 涨停价
+  double lowerLimit = 16; // 跌停价
+}
+
+message Bar {
+  string symbol = 1; //
+  string timestamp = 2; //
+  double open = 3; //
+  double high = 4; //
+  double low = 5; //
+  double close = 6; //
+  int32 volume = 7; //
+  double turnover = 8; //
+  double openInterest = 9; //
+}
