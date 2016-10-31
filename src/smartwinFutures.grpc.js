@@ -33,8 +33,16 @@ async function streamBar(stream) {
 
 async function getLastMarketDepths(call, callback) {
   try {
+    debug('subscriptions: %o', call.request.subscriptions);
     const marketData = marketDatas.getMarketData(marketDataName);
-    const marketDepths = marketData.getLastMarketDepths(call.request);
+    const subsPromise = call.request.subscriptions.map(sub => marketData.subscribe(sub));
+    const subsPromiseResult = await Promise.all(subsPromise);
+    debug('subsPromiseResult %o', subsPromiseResult);
+    const marketDepths = call.request.subscriptions
+      .map(sub => marketData.getLastMarketData(sub))
+      .filter(md => (!!md && !!md.dataType && md.dataType !== 'marketDepth'))
+      ;
+    debug('marketDepths %o', marketDepths);
     callback(null, { marketDepths });
   } catch (error) {
     debug('Error getLastMarketDepths %o', error);
@@ -44,9 +52,16 @@ async function getLastMarketDepths(call, callback) {
 
 async function getLastBars(call, callback) {
   try {
+    debug('subscriptions: %o', call.request.subscriptions);
     const marketData = marketDatas.getMarketData(marketDataName);
-    // const bars = marketData.getLastBars(call.request);
-    const bars = [];
+    const subsPromise = call.request.subscriptions.map(sub => marketData.subscribe(sub));
+    const subsPromiseResult = await Promise.all(subsPromise);
+    debug('subsPromiseResult %o', subsPromiseResult);
+    const bars = call.request.subscriptions
+      .map(sub => marketData.getLastMarketData(sub))
+      .filter(md => (!!md && !!md.dataType && md.dataType !== 'bar'))
+      ;
+    debug('bars %o', bars);
     callback(null, { bars });
   } catch (error) {
     debug('Error getLastBars %o', error);

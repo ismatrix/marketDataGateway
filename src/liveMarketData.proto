@@ -3,37 +3,30 @@ syntax = "proto3";
 package liveMarketDataPackage;
 
 service SmartwinFuturesService {
-  rpc StreamMarketDepth(stream SubscribeMarketDepth) returns (stream MarketDepth) {}
-  rpc StreamBar(stream SubscribeBar) returns (stream Bar) {}
+  rpc StreamMarketDepth(stream Subscription) returns (stream MarketDepth) {}
+  rpc StreamBar(stream Subscription) returns (stream Bar) {}
 
   // rpc UnsubscribeMarketData(stream UnsubscribeMarketData) returns (Empty) {}
 
-  rpc getLastMarketDepths(getLastMarketDepths) returns (LastMarketDepthsResponse) {}
-  rpc getLastBars(getLastBars) returns (LastBarsResponse) {}
+  rpc getLastMarketDepths(Subscriptions) returns (LastMarketDepthsResponse) {}
+  rpc getLastBars(Subscriptions) returns (LastBarsResponse) {}
 }
 
 message Empty {
-}
-
-message SubscribeMarketDepth {
-  Instrument instrument = 1;
-}
-
-message SubscribeBar {
-  Instrument instrument = 1;
-  string resolution = 2;
 }
 
 message Instrument {
   string symbol = 1;
 }
 
-message getLastMarketDepths {
-  repeated Instrument instruments = 1;
+message Subscription {
+  Instrument instrument = 1;
+  string resolution = 2;
+  string dataType = 3;
 }
 
-message getLastBars {
-  repeated Instrument instruments = 1;
+message Subscriptions {
+  repeated Subscription subscriptions = 1;
 }
 
 message LastMarketDepthsResponse {

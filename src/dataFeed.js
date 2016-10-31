@@ -5,7 +5,7 @@ export default function createDataFeed(config) {
   const {
     name,
     server,
-  } = config.datafeed;
+  } = config.dataFeed;
 
   const debug = createDebug(`dataFeed ${name}@${server.ip}:${server.port}`);
   try {

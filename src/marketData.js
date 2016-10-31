@@ -4,29 +4,37 @@ import createDataFeed from './dataFeed';
 
 export default function createMarketData(config) {
   const {
-    market,
-    datafeed,
+    name,
   } = config;
 
-  const debug = createDebug(`marketData ${market}@${datafeed.name}`);
+  const debug = createDebug(`marketData ${name}@${config.dataFeed.name}`);
 
   try {
-    const dataFeedsStore = [];
     const marketDataStore = [];
     const subscriptionsStore = [];
 
-    const dataFeed = createDataFeed(config);
+    const addMarketData = (data) => {
+      try {
+        const index = marketDataStore.findIndex(elem =>
+          (
+            elem.symbol === data.symbol &&
+            elem.resolution === data.resolution &&
+            elem.dataType === data.dataType
+          )
+        );
+        if (index === -1) {
+          marketDataStore.push(data);
+        } else {
+          marketDataStore[index] = data;
+        }
+      } catch (error) {
+        debug('Error addMarketData(): %o', error);
+      }
+    };
 
     const feedMarketDataStore = through.obj((data, enc, callback) => {
       try {
-        const index = marketDataStore.findIndex(elem =>
-          (elem.symbol === data.symbol && elem.resolution === data.resolution)
-        );
-        if (index === -1) {
-          marketDataStore.push(data);
-        } else {
-          marketDataStore[index] = data;
-        }
+        addMarketData(data);
         callback(null, data);
       } catch (error) {
         debug('Error feedStore(): %o', error);
@@ -34,93 +42,88 @@ export default function createMarketData(config) {
       }
     });
 
-    const getOrders = () => {
-      const orders = ordersStore.map(elem => Object.assign({}, elem));
-      return orders;
+    const dataFeed = createDataFeed(config);
+    dataFeed.getDataFeed().pipe(feedMarketDataStore);
+
+    const getMarketData = () => {
+      try {
+        return marketDataStore;
+      } catch (error) {
+        debug('Error getMarketData(): %o', error);
+      }
     };
 
-    function getMarketData() {
-      return marketDataStore;
-    }
-
-    function getSubscriptions() {
-      return subscriptionsStore;
-    }
-
-    const feedStore = through.obj((data, enc, callback) => {
+    const getSubscriptions = () => {
       try {
-        const index = marketDataStore.findIndex(elem =>
-          (elem.symbol === data.symbol && elem.resolution === data.resolution)
-        );
-        if (index === -1) {
-          marketDataStore.push(data);
-        } else {
-          marketDataStore[index] = data;
-        }
-        callback(null, data);
+        return subscriptionsStore;
       } catch (error) {
-        debug('Error feedStore(): %o', error);
-        callback(error);
+        debug('Error getSubscriptions(): %o', error);
       }
-    });
+    };
 
-    async function subscribe(newSub) {
+    const matchSubscription = newSub => sub => (
+      sub.instrument.symbol === newSub.instrument.symbol &&
+      sub.resolution === newSub.resolution &&
+      sub.dataType === newSub.dataType);
+
+    const matchMarketData = newSub => sub => (
+      sub.symbol === newSub.instrument.symbol &&
+      sub.resolution === newSub.resolution &&
+      sub.dataType === newSub.dataType);
+
+    const subscribe = async (newSub) => {
       try {
-        const {
-          datafeed = 'iceLive',
-          symbol,
-          resolution,
-        } = newSub;
-
-        const similarSubs = subscriptionsStore
-          .filter(sub => (sub.symbol === symbol && sub.resolution === resolution))
+        const similarSub = subscriptionsStore
+          .find(matchSubscription(newSub))
           ;
 
-        if (similarSubs.length === 0) {
-          const theDataFeed = dataFeedsStore.find(elem => elem.datafeed === datafeed);
-          if (theDataFeed === undefined) throw new Error('no existing dataFeed');
-
-          await theDataFeed.subscribe(symbol, resolution);
+        if (!similarSub) {
+          await dataFeed.subscribe(newSub);
           subscriptionsStore.push(newSub);
+          return newSub;
         }
       } catch (error) {
         debug('Error subscribe(): %o', error);
       }
-    }
+    };
 
-    async function unsubscribe(newSub) {
+    const unsubscribe = async (newSub) => {
       try {
-        const {
-          datafeed = 'iceLive',
-          symbol,
-          resolution,
-        } = newSub;
-
         const similarSubIndex = subscriptionsStore
-          .findIndex(sub => (sub.symbol === symbol && sub.resolution === resolution))
+          .findIndex(matchSubscription(newSub))
           ;
 
         if (similarSubIndex !== -1) {
-          const theDataFeed = dataFeedsStore.find(elem => elem.datafeed === datafeed);
-          if (theDataFeed === undefined) throw new Error('no dataFeed datafeed');
-
-          await theDataFeed.unsubscribe(symbol, resolution);
-          subscriptionsStore.splice(similarSubIndex, similarSubIndex + 1);
+          await dataFeed.unsubscribe(newSub);
+          const removedSubs = subscriptionsStore.splice(similarSubIndex, similarSubIndex + 1);
+          debug('removedSubs %o', removedSubs);
         }
       } catch (error) {
         debug('Error unsubscribe(): %o', error);
       }
-    }
+    };
+
+    const getLastMarketData = (sub) => {
+      try {
+        const lastMarketData = marketDataStore
+          .find(matchMarketData(sub))
+          ;
+        return lastMarketData;
+      } catch (error) {
+        debug('Error getLast(): %o', error);
+      }
+    };
 
     const marketDataBase = {
       subscribe,
       unsubscribe,
       getMarketData,
+      getLastMarketData,
       getSubscriptions,
     };
     const marketData = Object.assign(Object.create(dataFeed), marketDataBase);
     return marketData;
   } catch (error) {
-    debug(`createMarketData() ${market}@${datafeed.name} Error: %o`, error);
+    debug(`createMarketData() ${name}@${config.dataFeed.name} Error: %o`, error);
   }
 }

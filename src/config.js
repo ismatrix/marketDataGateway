@@ -10,7 +10,7 @@ export const grpcConfig = {
 export const marketDataConfigs = [
   {
     name: 'smartwinFutures',
-    datafeed: {
+    dataFeed: {
       name: 'iceLive',
       server: {
         ip: '120.76.98.94',
