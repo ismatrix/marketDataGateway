@@ -11,14 +11,15 @@ import {
 } from './config';
 import marketDatas from './marketDatas';
 
-const debug = createDebug('app');
+const grpcUrl = `${grpcConfig.ip}:${grpcConfig.port}`;
+const debug = createDebug(`app ${grpcUrl}`);
 
 async function init() {
   try {
-    await Promise.all([
-      mongodb.connect(mongodbUrl),
-      marketDatas.addMarketData(marketDataConfigs[0]),
-    ]);
+    await mongodb.connect(mongodbUrl);
+    await Promise.all([].concat(
+      marketDataConfigs.map(conf => marketDatas.addMarketData(conf)),
+    ));
   } catch (error) {
     debug('Error init(): %o', error);
   }
@@ -27,7 +28,7 @@ async function init() {
 async function main() {
   try {
     debug('app.js main');
-    debug('marketDataConfigs[0] %o', marketDataConfigs[0]);
+    debug('marketDataConfigs %o', marketDataConfigs);
     await init();
 
     const marketDataProto = grpc.load(__dirname.concat('/liveMarketData.proto'));

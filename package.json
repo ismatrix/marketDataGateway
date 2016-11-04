@@ -31,8 +31,10 @@
     "babel-register": "^6.16.3",
     "bluebird": "^3.4.6",
     "debug": "^2.2.0",
-    "grpc": "^1.0.1-pre1",
+    "grpc": "^1.0.1",
     "jsonwebtoken": "^7.1.9",
+    "lodash": "^4.16.6",
+    "lokijs": "^1.4.1",
     "mongodb": "^2.2.10",
     "sw-datafeed-icelive": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icelive.git#v1.0.5",
     "through2": "^2.0.1"

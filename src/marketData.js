@@ -1,6 +1,8 @@
 import createDebug from 'debug';
 import through from 'through2';
+import { differenceWith, isEqual } from 'lodash';
 import createDataFeed from './dataFeed';
+import mongodb from './mongodb';
 
 export default function createMarketData(config) {
   const {
@@ -8,6 +10,7 @@ export default function createMarketData(config) {
   } = config;
 
   const debug = createDebug(`marketData ${name}@${config.dataFeed.name}`);
+  const smartwinDB = mongodb.getdb();
 
   try {
     const marketDataStore = [];
@@ -33,17 +36,19 @@ export default function createMarketData(config) {
     };
 
     const feedMarketDataStore = through.obj((data, enc, callback) => {
-      try {
-        addMarketData(data);
-        callback(null, data);
-      } catch (error) {
-        debug('Error feedStore(): %o', error);
-        callback(error);
-      }
+      debug('data: %o', data);
+      addMarketData(data);
+      // callback(null, data);
+      callback();
     });
 
     const dataFeed = createDataFeed(config);
-    dataFeed.getDataFeed().pipe(feedMarketDataStore);
+
+    dataFeed.getDataFeed()
+      .pipe(feedMarketDataStore)
+      .on('error', error => debug('Error dataFeed.pipe(feedMarketDataStore): %o', error))
+      .on('end', () => debug('END event of through marketDataStore'))
+      ;
 
     const getMarketData = () => {
       try {
@@ -62,14 +67,21 @@ export default function createMarketData(config) {
     };
 
     const matchSubscription = newSub => sub => (
-      sub.instrument.symbol === newSub.instrument.symbol &&
+      sub.symbol === newSub.symbol &&
       sub.resolution === newSub.resolution &&
       sub.dataType === newSub.dataType);
 
-    const matchMarketData = newSub => sub => (
-      sub.symbol === newSub.instrument.symbol &&
-      sub.resolution === newSub.resolution &&
-      sub.dataType === newSub.dataType);
+    const matchMarketData = newSub => (sub) => {
+      debug('sub.symbol %o === newSub.symbol %o', sub.symbol, newSub.symbol);
+      debug('sub.resolution %o === newSub.resolution %o', sub.resolution, newSub.resolution);
+      debug('sub.dataType %o === newSub.dataType %o', sub.dataType, newSub.dataType);
+      const isMatch = (
+        sub.symbol === newSub.symbol &&
+        sub.resolution === newSub.resolution &&
+        sub.dataType === newSub.dataType);
+      debug('isMatch %o', isMatch);
+      return isMatch;
+    };
 
     const subscribe = async (newSub) => {
       try {
@@ -82,6 +94,7 @@ export default function createMarketData(config) {
           subscriptionsStore.push(newSub);
           return newSub;
         }
+        return newSub;
       } catch (error) {
         debug('Error subscribe(): %o', error);
       }
@@ -95,9 +108,27 @@ export default function createMarketData(config) {
 
         if (similarSubIndex !== -1) {
           await dataFeed.unsubscribe(newSub);
-          const removedSubs = subscriptionsStore.splice(similarSubIndex, similarSubIndex + 1);
-          debug('removedSubs %o', removedSubs);
+          const removedSub = subscriptionsStore.splice(similarSubIndex, similarSubIndex + 1);
+          debug('removedSub %o', removedSub);
+          return removedSub;
         }
+        return newSub;
+      } catch (error) {
+        debug('Error unsubscribe(): %o', error);
+      }
+    };
+
+    const updateSubscriptions = async (subs) => {
+      try {
+        const globalSubs = getSubscriptions();
+
+        const needSubscribeSubs = differenceWith(subs, globalSubs, isEqual);
+        debug('updateSubscriptions() needSubscribe: %o', needSubscribeSubs);
+        needSubscribeSubs.map(sub => subscribe(sub));
+
+        const needUnsubscribeSubs = differenceWith(globalSubs, subs, isEqual);
+        debug('updateSubscriptions() needUnsubscribe: %o', needUnsubscribeSubs);
+        needUnsubscribeSubs.map(sub => unsubscribe(sub));
       } catch (error) {
         debug('Error unsubscribe(): %o', error);
       }
@@ -105,21 +136,45 @@ export default function createMarketData(config) {
 
     const getLastMarketData = (sub) => {
       try {
+        debug('getLastMarketData() sub %o', sub);
+        debug('getLastMarketData() marketDataStore %o', marketDataStore);
         const lastMarketData = marketDataStore
           .find(matchMarketData(sub))
           ;
+        debug('lastMarketData %o', lastMarketData);
         return lastMarketData;
       } catch (error) {
         debug('Error getLast(): %o', error);
       }
     };
 
+    const getInstruments = async (symbols) => {
+      try {
+        const INSTRUMENT = smartwinDB.collection('INSTRUMENT');
+        const query = { instrumentid: { $in: symbols } };
+        const projection = { _id: 0 };
+        const instruments = await INSTRUMENT.find(query, projection).toArray();
+        debug('instruments %o', instruments);
+
+        instruments.map((ins) => {
+          ins.updatedate = ins.updatedate.toISOString();
+          if ('update_date' in ins) delete ins.update_date;
+          return ins;
+        });
+        return instruments;
+      } catch (error) {
+        debug('Error getInstruments(): %o', error);
+      }
+    };
+
     const marketDataBase = {
       subscribe,
       unsubscribe,
+      updateSubscriptions,
       getMarketData,
       getLastMarketData,
       getSubscriptions,
+      getInstruments,
     };
     const marketData = Object.assign(Object.create(dataFeed), marketDataBase);
     return marketData;
