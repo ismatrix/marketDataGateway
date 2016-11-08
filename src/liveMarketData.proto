@@ -6,6 +6,7 @@ service SmartwinFuturesService {
   rpc GetMarketDepthStream(Empty) returns (stream MarketDepth) {}
   rpc GetBarStream(Empty) returns (stream Bar) {}
   rpc GetTickerStream(Empty) returns (stream Ticker) {}
+  rpc GetDayBarStream(Empty) returns (stream DayBar) {}
 
   rpc SubscribeMarketData(Subscription) returns (Subscription) {}
   rpc UnsubscribeMarketData(Subscription) returns (Subscription) {}
@@ -92,24 +93,32 @@ message LastTickersResponse {
 }
 
 message MarketDepth {
-  string symbol = 1; //
-  string resolution = 2; //
-  string timestamp = 3; // TradeDay+hh24mi0
-  double high = 4; // 最高价
-  double low = 5; // 最低价
-  double open = 6; // 开盘价
-  double close = 7; // 收盘价
-  double average = 8; // 日均价
-  int32	volume = 9; // 成交量
-  double turnover = 10; // 成交额
-  double settlement = 11; // 结算价
-  double openInterest = 12; // 持仓量 未平仓合
-  double preSettlement = 13; // 上次结算价
-  double preClose = 14; // 昨收盘
-  double preoOpenInterest = 15;	// 昨持仓量
-  double price = 16; // 当前价
-  double upperLimit = 17; // 涨停价
-  double lowerLimit = 18; // 跌停价
+  string tradingDay = 1;
+  string instrumentID = 2;
+  string exchangeID = 3;
+  string exchangeInstID = 4;
+  double lastPrice = 5;
+  double preSettlementPrice = 6;
+  double preClosePrice = 7;
+  double preOpenInterest = 8;
+  double openPrice = 9;
+  double highestPrice = 10;
+  double lowestPrice = 11;
+  int32 volume = 12;
+  double turnover = 13;
+  double openInterest = 14;
+  double closePrice = 15;
+  double settlementPrice = 16;
+  double upperLimitPrice = 17;
+  double lowerLimitPrice = 18;
+  string updateTime = 19;
+  int32 updateMillisec = 20;
+  double bidPrice1 = 21;
+  int32 bidVolume1 = 22;
+  double askPrice1 = 23;
+  int32 askVolume1 = 24;
+  double averagePrice = 25;
+  string actionDay = 26;
 }
 
 message Bar {
@@ -141,4 +150,23 @@ message Ticker {
   int32	askVolume1 = 13; // 卖一量
   string dataType = 14;
   string date = 15;
+}
+
+message DayBar {
+  string timestamp = 1; // TradeDay+hh24mi00
+  double high = 2; // 最高价
+  double low = 3; // 最低价
+  double open = 4; // 开盘价
+  double close = 5; // 收盘价
+  double average = 6; // 日均价
+  int32 volume = 7; // 成交量
+  double turnover = 8; // 成交额
+  double settlement = 9; // 结算价
+  double openInterest = 10; // 持仓量 未平仓合约
+  double preSettlement = 11; // 上次结算价
+  double preClose = 12; // 昨收盘
+  double preoOpenInterest = 13; // 昨持仓量
+  double price = 14; // 当前价
+  double upperLimit = 15; // 涨停价
+  double lowerLimit = 16; // 跌停价
 }

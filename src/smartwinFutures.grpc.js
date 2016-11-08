@@ -1,6 +1,7 @@
 import createDebug from 'debug';
 import marketDatas from './marketDatas';
-import sessionSubs from './sessionSubscriptions';
+import subStores from './subscriptionStores';
+import dataFeeds from './dataFeeds';
 
 const debug = createDebug('smartwinFutures.grpc');
 
@@ -8,15 +9,31 @@ const marketDataName = 'smartwinFutures';
 
 async function getMarketDepthStream(stream) {
   try {
-    debug('getMarketDepthStream() stream: %o', stream);
     const marketData = marketDatas.getMarketData(marketDataName);
-    marketData.getDataFeed()
-      .on('data', (data) => {
-        if (data.dataType === 'marketDepth') {
+
+    const sessionid = stream.metadata.get('sessionid')[0];
+    debug('getMarketDepthStream() sessionid %o', sessionid);
+
+    const theDataFeed = marketData.getDataFeed('marketDepth');
+    const theSessionSubs = subStores.addAndGetSubStore({ name: sessionid });
+
+    theDataFeed
+      .on('marketDepth', (data) => {
+        const isSubscribed = theSessionSubs.isSubscribed(data);
+
+        if (isSubscribed) {
           stream.write(data);
         }
       })
+      .on('error', error => debug('getMarketDepthStream.onError: %o', error))
       ;
+
+    stream.on('cancelled', () => {
+      debug('cancelled connection for %o', sessionid);
+      theSessionSubs.removeDataTypeSubs('marketDepth');
+      const allSubs = sessionSubs.getAll();
+      marketData.updateSubscriptions(allSubs);
+    });
   } catch (error) {
     debug('Error getMarketDepthStream(): %o', error);
   }
@@ -25,13 +42,32 @@ async function getMarketDepthStream(stream) {
 async function getBarStream(stream) {
   try {
     const marketData = marketDatas.getMarketData(marketDataName);
-    marketData.getDataFeed()
-      .on('data', (data) => {
-        if (data.dataType === 'bar') {
+
+    const sessionid = stream.metadata.get('sessionid')[0];
+    debug('getBarStream() sessionid %o', sessionid);
+
+    const theDataFeed = marketData.getDataFeed('bar');
+    theDataFeed
+      .on('bar', (data) => {
+        const theSessionSubs = sessionSubs.getSessionSubs(sessionid);
+
+        const similarSubIndex = theSessionSubs
+          .findIndex(matchSubscription(data))
+          ;
+
+        if (similarSubIndex !== -1) {
           stream.write(data);
         }
       })
+      .on('error', error => debug('getBarStream.onError: %o', error))
       ;
+
+    stream.on('cancelled', () => {
+      debug('cancelled connection for %o', sessionid);
+      sessionSubs.removeDataTypeSubs(sessionid, 'bar');
+      const allSubs = sessionSubs.getAll();
+      marketData.updateSubscriptions(allSubs);
+    });
   } catch (error) {
     debug('Error getBarStream(): %o', error);
   }
@@ -39,30 +75,36 @@ async function getBarStream(stream) {
 
 async function getTickerStream(stream) {
   try {
-    debug('getTickerStream() stream: %o', stream);
     const marketData = marketDatas.getMarketData(marketDataName);
 
     const sessionid = stream.metadata.get('sessionid')[0];
-    debug('sessionid %o', sessionid);
+    debug('getTickerStream() sessionid %o', sessionid);
 
     const peer = stream.getPeer();
     debug('peer %o', peer);
 
-    stream.on('cancelled', () => {
-      debug('cancelled connection for %o', sessionid);
-      sessionSubs.removeSession(sessionid);
-      const allSubs = sessionSubs.getAll();
-      marketData.updateSubscriptions(allSubs);
-    });
+    const theDataFeed = marketData.getDataFeed('ticker');
+    theDataFeed
+      .on('ticker', (data) => {
+        const theSessionSubs = sessionSubs.getSessionSubs(sessionid);
 
-    marketData.getDataFeed()
-      .on('data', (data) => {
-        if (data.dataType === 'ticker') {
+        const similarSubIndex = theSessionSubs
+          .findIndex(matchSubscription(data))
+          ;
+
+        if (similarSubIndex !== -1) {
           stream.write(data);
         }
       })
-      .on('error', error => debug('dataFeed.onData Error: %o', error))
+      .on('error', error => debug('getTickerStream.onError: %o', error))
       ;
+
+    stream.on('cancelled', () => {
+      debug('cancelled connection for %o', sessionid);
+      sessionSubs.removeDataTypeSubs(sessionid, 'ticker');
+      const allSubs = sessionSubs.getAll();
+      marketData.updateSubscriptions(allSubs);
+    });
   } catch (error) {
     debug('Error getTickerStream(): %o', error);
   }
@@ -72,14 +114,19 @@ async function subscribeMarketData(call, callback) {
   try {
     const sessionid = call.metadata.get('sessionid')[0];
     const newSub = call.request;
-    debug('subscribeMarketData() sub: %o', newSub);
 
     const marketData = marketDatas.getMarketData(marketDataName);
+    const theDataFeed = marketData.getDataFeed(newSub.dataType);
 
-    const subscription = await marketData.subscribe(newSub);
+    newSub.dataFeedName = theDataFeed.config.name;
+    debug('subscribeMarketData() sub: %o', newSub);
+
+    const subscription = await dataFeeds.subscribe(theDataFeed, newSub);
     debug('subscribeResult %o', subscription);
 
-    sessionSubs.add(sessionid, newSub);
+    const theSessionSubs = subStores.addAndGetSubStore({ name: sessionid });
+    theSessionSubs.addSub(newSub);
+
     callback(null, subscription);
   } catch (error) {
     debug('Error subscribeMarketData %o', error);
@@ -91,14 +138,16 @@ async function unsubscribeMarketData(call, callback) {
   try {
     const sessionid = call.metadata.get('sessionid')[0];
     const subToRemove = call.request;
-    debug('unsubscribeMarketData() sub: %o', subToRemove);
+    debug('unsubscribeMarketData() subToRemove: %o', subToRemove);
 
-    sessionSubs.removeSub(sessionid, subToRemove);
+    const theSessionSubs = subStores.addAndGetSubStore({ name: sessionid });
+    theSessionSubs.removeSub(subToRemove);
+
     callback(null, subToRemove);
 
     const marketData = marketDatas.getMarketData(marketDataName);
-    const allSubs = sessionSubs.getAll();
-    marketData.updateSubscriptions(allSubs);
+    const theDataFeed = marketData.getDataFeed(subToRemove.dataType);
+    dataFeeds.unsubscribe(theDataFeed, subToRemove);
   } catch (error) {
     debug('Error unsubscribeMarketData %o', error);
     callback(error);

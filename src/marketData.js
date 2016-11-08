@@ -1,7 +1,5 @@
 import createDebug from 'debug';
-import through from 'through2';
-import { differenceWith, isEqual } from 'lodash';
-import createDataFeed from './dataFeed';
+import dataFeeds from './dataFeeds';
 import mongodb from './mongodb';
 
 export default function createMarketData(config) {
@@ -9,67 +7,38 @@ export default function createMarketData(config) {
     name,
   } = config;
 
-  const debug = createDebug(`marketData ${name}@${config.dataFeed.name}`);
+  const debug = createDebug(`marketData ${name}`);
   const smartwinDB = mongodb.getdb();
 
   try {
-    const marketDataStore = [];
-    const subscriptionsStore = [];
+    config.dataFeeds.map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig));
 
-    const addMarketData = (data) => {
+    const init = async () => {
       try {
-        const index = marketDataStore.findIndex(elem =>
-          (
-            elem.symbol === data.symbol &&
-            elem.resolution === data.resolution &&
-            elem.dataType === data.dataType
-          )
-        );
-        if (index === -1) {
-          marketDataStore.push(data);
-        } else {
-          marketDataStore[index] = data;
+        const connectPromises = config.dataFeeds
+          .map(dataFeedConfig => dataFeeds.getDataFeed(dataFeedConfig.name))
+          .map(dataFeed => dataFeed.connect())
+          ;
+        debug('connectPromises %o', connectPromises);
+        await Promise.all(connectPromises);
+      } catch (error) {
+        debug('Error init(): %o', error);
+      }
+    };
+
+    const getDataFeed = (dataType) => {
+      try {
+        const dataFeedConf = config.dataFeeds.find(
+          dfConfig => dfConfig.dataTypes.includes(dataType));
+        if ('name' in dataFeedConf) {
+          const theDataFeed = dataFeeds.getDataFeed(dataFeedConf.name);
+          return theDataFeed;
         }
+        throw new Error('No dataFeed for this dataType');
       } catch (error) {
-        debug('Error addMarketData(): %o', error);
+        debug('Error getDataFeed(): %o', error);
       }
     };
-
-    const feedMarketDataStore = through.obj((data, enc, callback) => {
-      debug('data: %o', data);
-      addMarketData(data);
-      // callback(null, data);
-      callback();
-    });
-
-    const dataFeed = createDataFeed(config);
-
-    dataFeed.getDataFeed()
-      .pipe(feedMarketDataStore)
-      .on('error', error => debug('Error dataFeed.pipe(feedMarketDataStore): %o', error))
-      .on('end', () => debug('END event of through marketDataStore'))
-      ;
-
-    const getMarketData = () => {
-      try {
-        return marketDataStore;
-      } catch (error) {
-        debug('Error getMarketData(): %o', error);
-      }
-    };
-
-    const getSubscriptions = () => {
-      try {
-        return subscriptionsStore;
-      } catch (error) {
-        debug('Error getSubscriptions(): %o', error);
-      }
-    };
-
-    const matchSubscription = newSub => sub => (
-      sub.symbol === newSub.symbol &&
-      sub.resolution === newSub.resolution &&
-      sub.dataType === newSub.dataType);
 
     const matchMarketData = newSub => (sub) => {
       debug('sub.symbol %o === newSub.symbol %o', sub.symbol, newSub.symbol);
@@ -83,60 +52,10 @@ export default function createMarketData(config) {
       return isMatch;
     };
 
-    const subscribe = async (newSub) => {
-      try {
-        const similarSub = subscriptionsStore
-          .find(matchSubscription(newSub))
-          ;
-
-        if (!similarSub) {
-          await dataFeed.subscribe(newSub);
-          subscriptionsStore.push(newSub);
-          return newSub;
-        }
-        return newSub;
-      } catch (error) {
-        debug('Error subscribe(): %o', error);
-      }
-    };
-
-    const unsubscribe = async (newSub) => {
-      try {
-        const similarSubIndex = subscriptionsStore
-          .findIndex(matchSubscription(newSub))
-          ;
-
-        if (similarSubIndex !== -1) {
-          await dataFeed.unsubscribe(newSub);
-          const removedSub = subscriptionsStore.splice(similarSubIndex, similarSubIndex + 1);
-          debug('removedSub %o', removedSub);
-          return removedSub;
-        }
-        return newSub;
-      } catch (error) {
-        debug('Error unsubscribe(): %o', error);
-      }
-    };
-
-    const updateSubscriptions = async (subs) => {
-      try {
-        const globalSubs = getSubscriptions();
-
-        const needSubscribeSubs = differenceWith(subs, globalSubs, isEqual);
-        debug('updateSubscriptions() needSubscribe: %o', needSubscribeSubs);
-        needSubscribeSubs.map(sub => subscribe(sub));
-
-        const needUnsubscribeSubs = differenceWith(globalSubs, subs, isEqual);
-        debug('updateSubscriptions() needUnsubscribe: %o', needUnsubscribeSubs);
-        needUnsubscribeSubs.map(sub => unsubscribe(sub));
-      } catch (error) {
-        debug('Error unsubscribe(): %o', error);
-      }
-    };
-
     const getLastMarketData = (sub) => {
       try {
         debug('getLastMarketData() sub %o', sub);
+        const marketDataStore = dataFeeds.getMarketData();
         debug('getLastMarketData() marketDataStore %o', marketDataStore);
         const lastMarketData = marketDataStore
           .find(matchMarketData(sub))
@@ -168,15 +87,12 @@ export default function createMarketData(config) {
     };
 
     const marketDataBase = {
-      subscribe,
-      unsubscribe,
-      updateSubscriptions,
-      getMarketData,
+      init,
+      getDataFeed,
       getLastMarketData,
-      getSubscriptions,
       getInstruments,
     };
-    const marketData = Object.assign(Object.create(dataFeed), marketDataBase);
+    const marketData = marketDataBase;
     return marketData;
   } catch (error) {
     debug(`createMarketData() ${name}@${config.dataFeed.name} Error: %o`, error);

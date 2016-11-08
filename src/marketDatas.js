@@ -12,7 +12,7 @@ async function addMarketData(config) {
     const newMarketData = createMarketData(config);
     newMarketData.config = config;
 
-    await newMarketData.connect();
+    await newMarketData.init();
 
     marketDatasArr.push(newMarketData);
   } catch (error) {

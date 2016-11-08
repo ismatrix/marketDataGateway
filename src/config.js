@@ -10,12 +10,26 @@ export const grpcConfig = {
 export const marketDataConfigs = [
   {
     name: 'smartwinFutures',
-    dataFeed: {
-      name: 'iceLive',
-      server: {
-        ip: '120.76.98.94',
-        port: '4502',
+    dataFeeds: [
+      {
+        name: 'iceLive',
+        dataTypes: ['ticker', 'bar', 'marketDepth'],
+        server: {
+          ip: '120.76.98.94',
+          port: '4502',
+        },
       },
-    },
+      {
+        name: 'mongodb',
+        dataTypes: ['dayBar'],
+        dbName: 'smartwin',
+        collectionName: 'DAYBAR',
+        queryInterval: 5000,
+        server: {
+          ip: '127.0.0.1',
+          port: '27017',
+        },
+      },
+    ],
   },
 ];
