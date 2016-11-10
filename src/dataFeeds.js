@@ -1,47 +1,27 @@
 import createDebug from 'debug';
+import { differenceWith, isEqual } from 'lodash';
 import createDataFeed from './dataFeed';
 import subStores from './subscriptionStores';
+import mdStores from './marketDataStores';
 
 const debug = createDebug('dataFeeds');
 
 const dataFeedsArr = [];
 
-const marketDataStore = [];
-
-const addMarketData = (data) => {
-  try {
-    const index = marketDataStore.findIndex(elem =>
-      (
-        elem.symbol === data.symbol &&
-        elem.resolution === data.resolution &&
-        elem.dataType === data.dataType
-      )
-    );
-    if (index === -1) {
-      marketDataStore.push(data);
-    } else {
-      marketDataStore[index] = data;
-    }
-  } catch (error) {
-    debug('Error addMarketData(): %o', error);
-  }
-};
+const matchDataFeed = newConfig => elem => (
+  elem.config.name === newConfig.name
+);
 
 async function addDataFeed(config) {
   try {
     debug('addDataFeed() config %o', config);
-    if (dataFeedsArr.map(elem => elem.config.name).includes(config.name)) return;
+    const existingDataFeed = dataFeedsArr.find(matchDataFeed(config));
+    debug('existingDataFeed %o', existingDataFeed);
+    if (existingDataFeed !== undefined) return;
 
     const newDataFeed = createDataFeed(config);
 
-    newDataFeed.config = config;
-
-    for (const dataType of config.dataTypes) {
-      newDataFeed
-        .on(dataType, data => addMarketData(data))
-        .on('error', error => debug('Error newDataFeed.onDataType: %o', error))
-        ;
-    }
+    mdStores.addAndGetMdStore({ dataFeed: newDataFeed });
 
     dataFeedsArr.push(newDataFeed);
   } catch (error) {
@@ -69,43 +49,78 @@ const getSubscriptions = () => {
   }
 };
 
-const getMarketData = () => {
+const subscribe = async (theDataFeedName, newSub) => {
   try {
-    return marketDataStore;
-  } catch (error) {
-    debug('Error getMarketData(): %o', error);
-  }
-};
+    const globalSubStore = subStores.addAndGetSubStore({ name: 'global' });
 
-const subscribe = async (theDataFeed, newSub) => {
-  try {
-    const theDataFeedSubs = subStores.addAndGetSubStore({ name: theDataFeed.config.name });
+    const isGloballySubscribed = globalSubStore.isSubscribed(newSub, theDataFeedName);
+    debug('isGloballySubscribed %o', isGloballySubscribed);
 
-    const isSubscribed = theDataFeedSubs.isSubscribed(newSub);
+    if (isGloballySubscribed) return newSub;
 
-    if (isSubscribed) return newSub;
-
+    const theDataFeed = getDataFeed(theDataFeedName);
     await theDataFeed.subscribe(newSub);
-    theDataFeedSubs.addSub(newSub);
+    globalSubStore.addSub(newSub, theDataFeedName);
     return newSub;
   } catch (error) {
     debug('Error subscribe(): %o', error);
   }
 };
 
-const unsubscribe = async (theDataFeed, subToRemove) => {
+const unsubscribe = async (theDataFeedName, subToRemove) => {
   try {
-    const theDataFeedSubs = subStores.addAndGetSubStore({ name: theDataFeed.config.name });
+    const globalSubStore = subStores.addAndGetSubStore({ name: 'global' });
 
-    const allSimilarSubs = subStores.countAllSub(subToRemove);
+    const allSimilarSubs = subStores.countAllSub(subToRemove, theDataFeedName);
 
     if (allSimilarSubs > 1) return subToRemove;
 
+    const theDataFeed = getDataFeed(theDataFeedName);
     await theDataFeed.unsubscribe(subToRemove);
-    theDataFeedSubs.removeSub(subToRemove);
+    globalSubStore.removeSub(subToRemove, theDataFeedName);
     return subToRemove;
   } catch (error) {
     debug('Error unsubscribe(): %o', error);
+  }
+};
+
+const clearGlobalSubsDiff = async () => {
+  try {
+    const theSubStores = subStores.getSubStores();
+    const mergedGlobalSubStore = theSubStores.reduce((acc, cur) => {
+      if (cur.config.name === 'global') return acc;
+      const curStore = cur.getSubs();
+      const keys = Object.getOwnPropertyNames(curStore);
+      for (const key of keys) {
+        // debug('%o of %o: %o', key, cur.config.name, curStore[key]);
+        // debug('acc[%o]: %o', key, acc[key]);
+        if (!Array.isArray(acc[key])) acc[key] = [];
+        acc[key] = acc[key].concat(curStore[key]);
+      }
+      return acc;
+    }, {});
+    // debug('mergedGlobalSubStore %o', mergedGlobalSubStore);
+
+    const globalSubStore = subStores.addAndGetSubStore({ name: 'global' });
+    const globalSubs = globalSubStore.getSubs();
+    // debug('globalSubs %o', globalSubs);
+
+    const keys = Object.getOwnPropertyNames(globalSubs);
+    for (const key of keys) {
+      const mergedCollection = mergedGlobalSubStore[key];
+      // debug('mergedCollection %o', mergedCollection);
+      const globalCollection = globalSubs[key];
+      // debug('globalCollection %o', globalCollection);
+      const needUnsubscribe = differenceWith(globalCollection, mergedCollection, isEqual);
+      debug('dataFeed %o needUnsubscribe %o', key, needUnsubscribe);
+      const needSubscribe = differenceWith(mergedCollection, globalCollection, isEqual);
+      debug('dataFeed %o needSubscribe %o', key, needSubscribe);
+
+      needSubscribe.map(elem => subscribe(key, elem));
+      needUnsubscribe.map(elem => unsubscribe(key, elem));
+    }
+  } catch (error) {
+    debug('Error clearGlobalSubsDiff(): %o', error);
   }
 };
 
@@ -113,9 +128,9 @@ const dataFeeds = {
   addDataFeed,
   getDataFeed,
   getSubscriptions,
-  getMarketData,
   subscribe,
   unsubscribe,
+  clearGlobalSubsDiff,
 };
 
 export default dataFeeds;

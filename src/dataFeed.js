@@ -23,8 +23,8 @@ export default function createDataFeed(config) {
         throw new Error('Missing dataFeed provider parameter');
     }
 
-    return dataFeed;
+    return Object.assign(dataFeed, { config });
   } catch (error) {
-    debug('createDataFeed() Error: %o', error);
+    debug('Error createDataFeed(): %o', error);
   }
 }

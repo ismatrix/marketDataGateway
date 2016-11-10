@@ -1,6 +1,8 @@
 import createDebug from 'debug';
-import dataFeeds from './dataFeeds';
 import mongodb from './mongodb';
+import dataFeeds from './dataFeeds';
+import subStores from './subscriptionStores';
+import mdStores from './marketDataStores';
 
 export default function createMarketData(config) {
   const {
@@ -11,7 +13,9 @@ export default function createMarketData(config) {
   const smartwinDB = mongodb.getdb();
 
   try {
-    config.dataFeeds.map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig));
+    for (const dataFeedConfig of config.dataFeeds) {
+      dataFeeds.addDataFeed(dataFeedConfig);
+    }
 
     const init = async () => {
       try {
@@ -23,6 +27,45 @@ export default function createMarketData(config) {
         await Promise.all(connectPromises);
       } catch (error) {
         debug('Error init(): %o', error);
+      }
+    };
+
+    const dataTypeToDataFeedName = (dataType) => {
+      try {
+        for (const dataFeed of config.dataFeeds) {
+          if (dataFeed.dataTypes.includes(dataType)) return dataFeed.name;
+        }
+        throw new Error('dataType not found in dataFeeds config');
+      } catch (error) {
+        debug('Error dataTypeToDataFeedName(): %o', error);
+      }
+    };
+
+    const subscribeMarketData = async (sessionid, newSub) => {
+      try {
+        const theDataFeedName = dataTypeToDataFeedName(newSub.dataType);
+        const subscription = await dataFeeds.subscribe(theDataFeedName, newSub);
+        debug('subscribeResult %o', subscription);
+
+        const theSessionSubs = subStores.addAndGetSubStore({ name: sessionid });
+        theSessionSubs.addSub(newSub, theDataFeedName);
+
+        return subscription;
+      } catch (error) {
+        debug('Error subscribe(): %o', error);
+      }
+    };
+
+    const unsubscribeMarketData = async (sessionid, subToRemove) => {
+      try {
+        const theDataFeedName = dataTypeToDataFeedName(subToRemove.dataType);
+
+        const theSessionSubs = subStores.addAndGetSubStore({ name: sessionid });
+        theSessionSubs.removeSub(subToRemove, theDataFeedName);
+
+        dataFeeds.unsubscribe(theDataFeedName, subToRemove);
+      } catch (error) {
+        debug('Error subscribe(): %o', error);
       }
     };
 
@@ -40,30 +83,18 @@ export default function createMarketData(config) {
       }
     };
 
-    const matchMarketData = newSub => (sub) => {
-      debug('sub.symbol %o === newSub.symbol %o', sub.symbol, newSub.symbol);
-      debug('sub.resolution %o === newSub.resolution %o', sub.resolution, newSub.resolution);
-      debug('sub.dataType %o === newSub.dataType %o', sub.dataType, newSub.dataType);
-      const isMatch = (
-        sub.symbol === newSub.symbol &&
-        sub.resolution === newSub.resolution &&
-        sub.dataType === newSub.dataType);
-      debug('isMatch %o', isMatch);
-      return isMatch;
-    };
-
-    const getLastMarketData = (sub) => {
+    const getLastMarketDatas = (sessionid, subs, dataType) => {
       try {
-        debug('getLastMarketData() sub %o', sub);
-        const marketDataStore = dataFeeds.getMarketData();
-        debug('getLastMarketData() marketDataStore %o', marketDataStore);
-        const lastMarketData = marketDataStore
-          .find(matchMarketData(sub))
+        subs.map(sub => subscribeMarketData(sessionid, sub));
+
+        const mdStore = mdStores.getMdStoreByName(dataTypeToDataFeedName(dataType));
+        const tickers = subs
+          .map(sub => mdStore.getLastMarketData(sub))
+          .filter(md => (!!md))
           ;
-        debug('lastMarketData %o', lastMarketData);
-        return lastMarketData;
+        return tickers;
       } catch (error) {
-        debug('Error getLast(): %o', error);
+        debug('Error getLastMarketDatas %o', error);
       }
     };
 
@@ -87,9 +118,13 @@ export default function createMarketData(config) {
     };
 
     const marketDataBase = {
+      config,
       init,
+      dataTypeToDataFeedName,
+      subscribeMarketData,
+      unsubscribeMarketData,
       getDataFeed,
-      getLastMarketData,
+      getLastMarketDatas,
       getInstruments,
     };
     const marketData = marketDataBase;

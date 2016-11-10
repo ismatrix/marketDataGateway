@@ -2,28 +2,37 @@ import createDebug from 'debug';
 import { remove } from 'lodash';
 import createSubscriptionStore from './subscriptionStore';
 
-const debug = createDebug('sessionSubscriptions.grpc');
+const debug = createDebug('subscriptionStores');
 
 const subStores = [];
 
-const matchSubStore = newConfig => subStore => (
-  subStore.config.name === newConfig.name
+const matchSubStore = newConfig => elem => (
+  elem.config.name === newConfig.name
 );
-const matchSubscription = newSub => sub => (
-  sub.dataFeedName === newSub.dataFeedName &&
-  sub.symbol === newSub.symbol &&
-  sub.resolution === newSub.resolution &&
-  sub.dataType === newSub.dataType);
+const matchSubscription = newSub => elem => (
+  elem.dataFeedName === newSub.dataFeedName &&
+  elem.symbol === newSub.symbol &&
+  elem.resolution === newSub.resolution &&
+  elem.dataType === newSub.dataType);
 
 
 function addAndGetSubStore(config) {
   try {
     const existingSubStore = subStores.find(matchSubStore(config));
+
     if (existingSubStore !== undefined) return existingSubStore;
 
     const newSubStore = createSubscriptionStore(config);
     subStores.push(newSubStore);
     return newSubStore;
+  } catch (error) {
+    debug('Error addAndGetSubStore(): %o', error);
+  }
+}
+
+function getSubStores() {
+  try {
+    return subStores;
   } catch (error) {
     debug('Error addAndGetSubStore(): %o', error);
   }
@@ -38,10 +47,10 @@ function removeSubStore(config) {
   }
 }
 
-function getAllSubs() {
+function getAllSubs(collectionName) {
   try {
     const allSubs = subStores.reduce((acc, cur) =>
-      acc.concat(cur.getSubs())
+      acc.concat(cur.getSubs(collectionName))
     , []);
     return allSubs;
   } catch (error) {
@@ -49,9 +58,9 @@ function getAllSubs() {
   }
 }
 
-function countAllSub(subToCount) {
+function countAllSub(subToCount, collectionName) {
   try {
-    const allSubs = getAllSubs();
+    const allSubs = getAllSubs(collectionName);
     const allSimilarSubs = allSubs.filter(matchSubscription(subToCount));
     debug('number of similar sub %o', allSimilarSubs.length);
     return allSimilarSubs.length;
@@ -63,6 +72,7 @@ function countAllSub(subToCount) {
 const subscriptionStoresBase = {
   addAndGetSubStore,
   removeSubStore,
+  getSubStores,
   getAllSubs,
   countAllSub,
 };

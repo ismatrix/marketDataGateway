@@ -5,12 +5,16 @@ const debug = createDebug('marketDatas');
 
 const marketDatasArr = [];
 
+const matchMarketData = newConfig => elem => (
+  elem.config.name === newConfig.name
+);
+
 async function addMarketData(config) {
   try {
-    if (marketDatasArr.map(elem => elem.config.name).includes(config.name)) return;
+    const existingMarketData = marketDatasArr.find(matchMarketData(config));
+    if (existingMarketData !== undefined) return;
 
     const newMarketData = createMarketData(config);
-    newMarketData.config = config;
 
     await newMarketData.init();
 
