@@ -54,7 +54,7 @@ const subscribe = async (theDataFeedName, newSub) => {
     const globalSubStore = subStores.addAndGetSubStore({ name: 'global' });
 
     const isGloballySubscribed = globalSubStore.isSubscribed(newSub, theDataFeedName);
-    debug('isGloballySubscribed %o', isGloballySubscribed);
+    debug('isGloballySubscribed %o: %o', `${newSub.symbol}:${newSub.dataType}`, isGloballySubscribed);
 
     if (isGloballySubscribed) return newSub;
 

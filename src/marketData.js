@@ -45,7 +45,7 @@ export default function createMarketData(config) {
       try {
         const theDataFeedName = dataTypeToDataFeedName(newSub.dataType);
         const subscription = await dataFeeds.subscribe(theDataFeedName, newSub);
-        debug('subscribeResult %o', subscription);
+        // debug('global subscribeResult %o', subscription);
 
         const theSessionSubs = subStores.addAndGetSubStore({ name: sessionid });
         theSessionSubs.addSub(newSub, theDataFeedName);
@@ -104,7 +104,7 @@ export default function createMarketData(config) {
         const query = { instrumentid: { $in: symbols } };
         const projection = { _id: 0 };
         const instruments = await INSTRUMENT.find(query, projection).toArray();
-        debug('instruments %o', instruments);
+        debug('instruments %o', instruments.map(({ instrumentid, volumemultiple }) => ({ instrumentid, volumemultiple })));
 
         instruments.map((ins) => {
           ins.updatedate = ins.updatedate.toISOString();

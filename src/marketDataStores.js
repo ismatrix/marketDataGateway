@@ -12,7 +12,6 @@ const matchMdStore = newConfig => elem => (
 function addAndGetMdStore(config) {
   try {
     const existingMdStore = mdStores.find(matchMdStore(config));
-    debug('existingMdStore %o', existingMdStore);
     if (existingMdStore !== undefined) return existingMdStore;
 
     const newMdStore = createMarketDataStore(config);

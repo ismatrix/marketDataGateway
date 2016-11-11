@@ -2,7 +2,8 @@ import createDebug from 'debug';
 import fs from 'fs';
 import path from 'path';
 import grpc from 'grpc';
-import liveMarketData from './liveMarketData.grpc';
+import { upperFirst } from 'lodash';
+import marketDataGatewayGrpc from './marketDataGateway.grpc';
 import mongodb from './mongodb';
 import {
   mongodbUrl,
@@ -31,7 +32,7 @@ async function main() {
     debug('marketDataConfigs %o', marketDataConfigs);
     await init();
 
-    const marketDataProto = grpc.load(__dirname.concat('/liveMarketData.proto'));
+    const marketDataProto = grpc.load(__dirname.concat('/marketDataGateway.proto'));
 
     const sslServerCrtPath = path.join(__dirname, '../crt/server.crt');
     const sslServerKeyPath = path.join(__dirname, '../crt/server.key');
@@ -45,10 +46,13 @@ async function main() {
     );
 
     const server = new grpc.Server();
-    server.addProtoService(
-      marketDataProto.liveMarketDataPackage.SmartwinFuturesService.service,
-      liveMarketData.smartwinFutures
-    );
+    for (const config of marketDataConfigs) {
+      debug('config %o', config);
+      server.addProtoService(
+        marketDataProto[config.serviceName][upperFirst(config.serviceName)].service,
+        marketDataGatewayGrpc[config.serviceName],
+      );
+    }
 
     server.bind(`${grpcConfig.ip}:${grpcConfig.port}`, sslCreds);
     server.start();

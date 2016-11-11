@@ -21,12 +21,12 @@ export default function createSubscriptionStore(config) {
         }
         const similarSubIndex = subsArrCollection[collectionName]
           .findIndex(matchSubscription(newSub));
-        debug('similarSubIndex %o', similarSubIndex);
 
         if (similarSubIndex === -1) {
           subsArrCollection[collectionName].push(newSub);
+          debug('isLocallySubscribed %o: %o', `${newSub.symbol}:${newSub.dataType}`, false);
         }
-        debug('subsArrCollection[%o] %o', collectionName, subsArrCollection[collectionName]);
+        debug('isLocallySubscribed %o: %o', `${newSub.symbol}:${newSub.dataType}`, true);
       } catch (error) {
         debug('Error addSub(): %o', error);
       }

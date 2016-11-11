@@ -6,7 +6,7 @@ const debug = createDebug('marketDatas');
 const marketDatasArr = [];
 
 const matchMarketData = newConfig => elem => (
-  elem.config.name === newConfig.name
+  elem.config.serviceName === newConfig.serviceName
 );
 
 async function addMarketData(config) {
@@ -26,7 +26,10 @@ async function addMarketData(config) {
 
 function getMarketData(marketDataName) {
   try {
-    const theMarketData = marketDatasArr.find(elem => elem.config.name === marketDataName);
+    const config = {
+      serviceName: marketDataName,
+    };
+    const theMarketData = marketDatasArr.find(matchMarketData(config));
     if (theMarketData !== undefined) return theMarketData;
 
     throw new Error('marketData not found');

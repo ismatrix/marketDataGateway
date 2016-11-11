@@ -192,7 +192,7 @@ async function getInstruments(call, callback) {
     const marketData = marketDatas.getMarketData(marketDataName);
 
     const instruments = await marketData.getInstruments(call.request.symbols);
-    debug('instruments %o', instruments);
+    // debug('instruments %o', instruments);
     callback(null, { instruments });
   } catch (error) {
     debug('Error getInstruments %o', error);
