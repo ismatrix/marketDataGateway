@@ -1,7 +1,7 @@
-import smartwinFutures from './smartwinFutures.grpc';
+import smartwinFuturesMd from './smartwinFuturesMd.grpc';
 
 const marketDataGatewayServices = {
-  smartwinFutures,
+  smartwinFuturesMd,
 };
 
 export default marketDataGatewayServices;

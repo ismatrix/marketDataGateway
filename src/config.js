@@ -9,7 +9,7 @@ export const grpcConfig = {
 
 export const marketDataConfigs = [
   {
-    serviceName: 'smartwinFutures',
+    serviceName: 'smartwinFuturesMd',
     dataFeeds: [
       {
         name: 'iceLive',

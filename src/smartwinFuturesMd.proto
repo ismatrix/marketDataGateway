@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package smartwinFutures;
+package smartwinFuturesMd;
 
-service SmartwinFutures {
+service SmartwinFuturesMd {
   rpc GetMarketDepthStream(Empty) returns (stream MarketDepth) {}
   rpc GetBarStream(Empty) returns (stream Bar) {}
   rpc GetTickerStream(Empty) returns (stream Ticker) {}

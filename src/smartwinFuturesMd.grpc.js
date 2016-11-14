@@ -3,15 +3,15 @@ import marketDatas from './marketDatas';
 import subStores from './subscriptionStores';
 import dataFeeds from './dataFeeds';
 
-const debug = createDebug('smartwinFutures.grpc');
+const debug = createDebug('smartwinFuturesMd.grpc');
 
-const marketDataName = 'smartwinFutures';
+const serviceName = 'smartwinFuturesMd';
 
 function setMarketDataStream(stream, eventName) {
   const sessionid = stream.metadata.get('sessionid')[0];
   const streamDebug = createDebug(`${eventName}@${sessionid}@smartwinFutures.grpc`);
   try {
-    const marketData = marketDatas.getMarketData(marketDataName);
+    const marketData = marketDatas.getMarketData(serviceName);
     streamDebug('get%oStream()', eventName);
 
     const peer = stream.getPeer();
@@ -89,7 +89,7 @@ async function subscribeMarketData(call, callback) {
     const newSub = call.request;
     debug('subscribeMarketData() sub: %o', newSub);
 
-    const marketData = marketDatas.getMarketData(marketDataName);
+    const marketData = marketDatas.getMarketData(serviceName);
     const subscription = await marketData.subscribeMarketData(sessionid, newSub);
 
     callback(null, subscription);
@@ -105,7 +105,7 @@ async function unsubscribeMarketData(call, callback) {
     const subToRemove = call.request;
     debug('unsubscribeMarketData() subToRemove: %o', subToRemove);
 
-    const marketData = marketDatas.getMarketData(marketDataName);
+    const marketData = marketDatas.getMarketData(serviceName);
 
     await marketData.unsubscribeMarketData(sessionid, subToRemove);
 
@@ -122,7 +122,7 @@ async function getLastMarketDepths(call, callback) {
     const subs = call.request.subscriptions.filter(sub => sub.dataType === dataType);
     debug('getLast%os: %o', dataType, subs);
     const sessionid = call.metadata.get('sessionid')[0];
-    const marketData = marketDatas.getMarketData(marketDataName);
+    const marketData = marketDatas.getMarketData(serviceName);
 
     const marketDepths = marketData.getLastMarketDatas(sessionid, subs, dataType);
     debug('%os %o', dataType, marketDepths);
@@ -139,7 +139,7 @@ async function getLastBars(call, callback) {
     const subs = call.request.subscriptions.filter(sub => sub.dataType === dataType);
     debug('getLast%os: %o', dataType, subs);
     const sessionid = call.metadata.get('sessionid')[0];
-    const marketData = marketDatas.getMarketData(marketDataName);
+    const marketData = marketDatas.getMarketData(serviceName);
 
     const bars = marketData.getLastMarketDatas(sessionid, subs, dataType);
     debug('%os %o', dataType, bars);
@@ -156,7 +156,7 @@ async function getLastTickers(call, callback) {
     const subs = call.request.subscriptions.filter(sub => sub.dataType === dataType);
     debug('getLast%os: %o', dataType, subs);
     const sessionid = call.metadata.get('sessionid')[0];
-    const marketData = marketDatas.getMarketData(marketDataName);
+    const marketData = marketDatas.getMarketData(serviceName);
 
     const tickers = marketData.getLastMarketDatas(sessionid, subs, dataType);
 
@@ -174,7 +174,7 @@ async function getLastDayBars(call, callback) {
     const subs = call.request.subscriptions.filter(sub => sub.dataType === dataType);
     debug('getLast%os: %o', dataType, subs);
     const sessionid = call.metadata.get('sessionid')[0];
-    const marketData = marketDatas.getMarketData(marketDataName);
+    const marketData = marketDatas.getMarketData(serviceName);
 
     const dayBars = marketData.getLastMarketDatas(sessionid, subs, dataType);
 
@@ -189,7 +189,7 @@ async function getLastDayBars(call, callback) {
 async function getInstruments(call, callback) {
   try {
     debug('symbols: %o', call.request.symbols);
-    const marketData = marketDatas.getMarketData(marketDataName);
+    const marketData = marketDatas.getMarketData(serviceName);
 
     const instruments = await marketData.getInstruments(call.request.symbols);
     // debug('instruments %o', instruments);
