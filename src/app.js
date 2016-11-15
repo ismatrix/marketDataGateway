@@ -2,6 +2,7 @@ import createDebug from 'debug';
 import fs from 'fs';
 import path from 'path';
 import grpc from 'grpc';
+import program from 'commander';
 import { upperFirst } from 'lodash';
 import marketDataGatewayGrpc from './marketDataGateway.grpc';
 import mongodb from './mongodb';
@@ -11,6 +12,11 @@ import {
   grpcConfig,
 } from './config';
 import marketDatas from './marketDatas';
+
+program
+  .version('1.0.2')
+  .option('-c, --credentials-name [value]', 'the name of the server ssl credentials .crt/.key')
+  .parse(process.argv);
 
 const grpcUrl = `${grpcConfig.ip}:${grpcConfig.port}`;
 const debug = createDebug(`app ${grpcUrl}`);
@@ -34,8 +40,9 @@ async function main() {
 
     const marketDataProto = grpc.load(__dirname.concat('/marketDataGateway.proto'));
 
-    const sslServerCrtPath = path.join(__dirname, '../crt/server.crt');
-    const sslServerKeyPath = path.join(__dirname, '../crt/server.key');
+    const credentialsName = program.credentialsName || 'server';
+    const sslServerCrtPath = path.join(__dirname, `../crt/${credentialsName}.crt`);
+    const sslServerKeyPath = path.join(__dirname, `../crt/${credentialsName}.key`);
     const sslServerCrt = fs.readFileSync(sslServerCrtPath);
     const sslServerKey = fs.readFileSync(sslServerKeyPath);
 
