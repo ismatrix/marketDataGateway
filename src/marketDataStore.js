@@ -45,7 +45,7 @@ export default function createMarketDataStore(config) {
       debug('registered event: dataType %o', dataType);
       dataFeed
         .on(dataType, (data) => {
-          debug('data %o', data);
+          debug('add new MarketData %o', { symbol: data.symbol, resolution: data.resolution, dataType: data.dataType });
           addMarketData(data);
         })
         .on('error', error => debug('Error newDataFeed.onDataType: %o', error))

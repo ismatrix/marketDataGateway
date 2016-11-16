@@ -24,9 +24,10 @@ export default function createSubscriptionStore(config) {
 
         if (similarSubIndex === -1) {
           subsArrCollection[collectionName].push(newSub);
-          debug('isLocallySubscribed %o: %o', `${newSub.symbol}:${newSub.dataType}`, false);
+          debug('added new sub %o', `${newSub.symbol}:${newSub.dataType}`);
+        } else {
+          debug('sub already in store %o', `${newSub.symbol}:${newSub.dataType}`);
         }
-        debug('isLocallySubscribed %o: %o', `${newSub.symbol}:${newSub.dataType}`, true);
       } catch (error) {
         debug('Error addSub(): %o', error);
       }

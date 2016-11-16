@@ -9,7 +9,7 @@ const serviceName = 'smartwinFuturesMd';
 
 function setMarketDataStream(stream, eventName) {
   const sessionid = stream.metadata.get('sessionid')[0];
-  const streamDebug = createDebug(`${eventName}@${sessionid}@smartwinFutures.grpc`);
+  const streamDebug = createDebug(`${eventName}@${sessionid}@smartwinFuturesMd.grpc`);
   try {
     const marketData = marketDatas.getMarketData(serviceName);
     streamDebug('get%oStream()', eventName);
@@ -21,10 +21,14 @@ function setMarketDataStream(stream, eventName) {
     const theSessionSubs = subStores.addAndGetSubStore({ name: sessionid });
 
     const listener = (data) => {
-      const isSubscribed = theSessionSubs.isSubscribed(data, theDataFeed.config.name);
-      streamDebug('isSubscribed', isSubscribed);
-      if (isSubscribed) {
-        stream.write(data);
+      try {
+        const isSubscribed = theSessionSubs.isSubscribed(data, theDataFeed.config.name);
+        streamDebug('isSubscribed to %o: %o', `${data.symbol}:${data.dataType}`, isSubscribed);
+        if (isSubscribed) {
+          stream.write(data);
+        }
+      } catch (error) {
+        streamDebug('Error listener() %o', error);
       }
     };
 
@@ -35,15 +39,19 @@ function setMarketDataStream(stream, eventName) {
 
     stream
       .on('cancelled', () => {
-        streamDebug('cancelled connection');
+        streamDebug('connection cancelled');
         theDataFeed.removeListener(eventName, listener);
         theSessionSubs.removeDataTypeSubs(eventName, theDataFeed.config.name);
         dataFeeds.clearGlobalSubsDiff();
       })
-      .on('error', error => streamDebug('%oStream.onError: %o', eventName, error))
+      .on('error', (error) => {
+        streamDebug('%oStream.onError: %o', eventName, error);
+        theDataFeed.removeListener(eventName, listener);
+      })
       ;
   } catch (error) {
     streamDebug('Error setMarketDataStream() %o', error);
+    stream.emit('error', error);
   }
 }
 
@@ -53,6 +61,7 @@ async function getMarketDepthStream(stream) {
     setMarketDataStream(stream, eventName);
   } catch (error) {
     debug('Error getMarketDepthStream(): %o', error);
+    stream.emit('error', error);
   }
 }
 
@@ -62,6 +71,7 @@ async function getBarStream(stream) {
     setMarketDataStream(stream, eventName);
   } catch (error) {
     debug('Error getBarStream(): %o', error);
+    stream.emit('error', error);
   }
 }
 
@@ -71,6 +81,7 @@ async function getTickerStream(stream) {
     setMarketDataStream(stream, eventName);
   } catch (error) {
     debug('Error getTickerStream(): %o', error);
+    stream.emit('error', error);
   }
 }
 
@@ -80,6 +91,7 @@ async function getDayBarStream(stream) {
     setMarketDataStream(stream, eventName);
   } catch (error) {
     debug('Error getDayBarStream(): %o', error);
+    stream.emit('error', error);
   }
 }
 
