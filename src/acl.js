@@ -3,13 +3,13 @@ import grpc from 'grpc';
 import NodeAclCb from 'acl';
 import jwtCb from 'jsonwebtoken';
 import Promise from 'bluebird';
-import { jwtSecret } from './config';
 
 const debug = createDebug('acl');
 const NodeAcl = Promise.promisifyAll(NodeAclCb);
 const jwt = Promise.promisifyAll(jwtCb);
 const acl = new NodeAcl(new NodeAcl.memoryBackend());
 
+const jwtSecret = 'Ci23fWtahDYE3dfirAHrJhzrUEoslIxqwcDN9VNhRJCWf8Tyc1F1mqYrjGYF';
 // Departments permissions
 acl.allow([
   {
@@ -79,10 +79,9 @@ async function grpcCan(ctx, permissions, resource) {
     const hasRight = await can(roles, permissions, resource);
 
     if (!hasRight) {
-      throw new Error(`${user.userid} is member of '${roles}'.\
-   Not enough to '${permissions}' the '${resource}'.)`);
+      throw new Error(`Roles: '${roles}' cannot '${permissions}' the '${resource}'.)`);
     }
-    return true;
+    return user;
   } catch (error) {
     debug('grpcCan() Error: %o', error);
     const err = new Error('Access forbidden');

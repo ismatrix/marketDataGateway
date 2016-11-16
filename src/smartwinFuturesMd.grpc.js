@@ -2,14 +2,18 @@ import createDebug from 'debug';
 import marketDatas from './marketDatas';
 import subStores from './subscriptionStores';
 import dataFeeds from './dataFeeds';
+import grpcCan from './acl';
 
 const debug = createDebug('smartwinFuturesMd.grpc');
 
 const serviceName = 'smartwinFuturesMd';
 
-function setMarketDataStream(stream, eventName) {
+async function setMarketDataStream(stream, eventName) {
+  const user = await grpcCan(stream, 'read', 'getOrders');
+
   const sessionid = stream.metadata.get('sessionid')[0];
-  const streamDebug = createDebug(`${eventName}@${sessionid}@smartwinFuturesMd.grpc`);
+  const streamDebug = createDebug(`${eventName}@${user.userid}:${sessionid.substr(0, 6)}@smartwinFuturesMd.grpc`);
+
   try {
     const marketData = marketDatas.getMarketData(serviceName);
     streamDebug('get%oStream()', eventName);
@@ -58,7 +62,7 @@ function setMarketDataStream(stream, eventName) {
 async function getMarketDepthStream(stream) {
   try {
     const eventName = 'marketDepth';
-    setMarketDataStream(stream, eventName);
+    await setMarketDataStream(stream, eventName);
   } catch (error) {
     debug('Error getMarketDepthStream(): %o', error);
     stream.emit('error', error);
@@ -68,7 +72,7 @@ async function getMarketDepthStream(stream) {
 async function getBarStream(stream) {
   try {
     const eventName = 'bar';
-    setMarketDataStream(stream, eventName);
+    await setMarketDataStream(stream, eventName);
   } catch (error) {
     debug('Error getBarStream(): %o', error);
     stream.emit('error', error);
@@ -78,7 +82,7 @@ async function getBarStream(stream) {
 async function getTickerStream(stream) {
   try {
     const eventName = 'ticker';
-    setMarketDataStream(stream, eventName);
+    await setMarketDataStream(stream, eventName);
   } catch (error) {
     debug('Error getTickerStream(): %o', error);
     stream.emit('error', error);
@@ -88,7 +92,7 @@ async function getTickerStream(stream) {
 async function getDayBarStream(stream) {
   try {
     const eventName = 'dayBar';
-    setMarketDataStream(stream, eventName);
+    await setMarketDataStream(stream, eventName);
   } catch (error) {
     debug('Error getDayBarStream(): %o', error);
     stream.emit('error', error);
@@ -97,6 +101,8 @@ async function getDayBarStream(stream) {
 
 async function subscribeMarketData(call, callback) {
   try {
+    await grpcCan(call, 'read', 'getOrders');
+
     const sessionid = call.metadata.get('sessionid')[0];
     const newSub = call.request;
     debug('subscribeMarketData() sub: %o', newSub);
@@ -113,6 +119,8 @@ async function subscribeMarketData(call, callback) {
 
 async function unsubscribeMarketData(call, callback) {
   try {
+    await grpcCan(call, 'read', 'getOrders');
+
     const sessionid = call.metadata.get('sessionid')[0];
     const subToRemove = call.request;
     debug('unsubscribeMarketData() subToRemove: %o', subToRemove);
@@ -130,6 +138,8 @@ async function unsubscribeMarketData(call, callback) {
 
 async function getLastMarketDepths(call, callback) {
   try {
+    await grpcCan(call, 'read', 'getOrders');
+
     const dataType = 'marketDepth';
     const subs = call.request.subscriptions.filter(sub => sub.dataType === dataType);
     debug('getLast%os: %o', dataType, subs);
@@ -147,6 +157,8 @@ async function getLastMarketDepths(call, callback) {
 
 async function getLastBars(call, callback) {
   try {
+    await grpcCan(call, 'read', 'getOrders');
+
     const dataType = 'bar';
     const subs = call.request.subscriptions.filter(sub => sub.dataType === dataType);
     debug('getLast%os: %o', dataType, subs);
@@ -164,6 +176,8 @@ async function getLastBars(call, callback) {
 
 async function getLastTickers(call, callback) {
   try {
+    await grpcCan(call, 'read', 'getOrders');
+
     const dataType = 'ticker';
     const subs = call.request.subscriptions.filter(sub => sub.dataType === dataType);
     debug('getLast%os: %o', dataType, subs);
@@ -182,6 +196,8 @@ async function getLastTickers(call, callback) {
 
 async function getLastDayBars(call, callback) {
   try {
+    await grpcCan(call, 'read', 'getOrders');
+
     const dataType = 'dayBar';
     const subs = call.request.subscriptions.filter(sub => sub.dataType === dataType);
     debug('getLast%os: %o', dataType, subs);
@@ -200,6 +216,8 @@ async function getLastDayBars(call, callback) {
 
 async function getInstruments(call, callback) {
   try {
+    await grpcCan(call, 'read', 'getOrders');
+
     debug('symbols: %o', call.request.symbols);
     const marketData = marketDatas.getMarketData(serviceName);
 
