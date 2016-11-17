@@ -71,7 +71,7 @@ export default function createSubscriptionStore(config) {
 
         if (similarSubIndex !== -1) {
           const removedSub = subsArrCollection[collectionName]
-            .splice(similarSubIndex, similarSubIndex + 1);
+            .splice(similarSubIndex, 1);
           debug('removeSub %o', removedSub);
         }
       } catch (error) {

@@ -6,10 +6,10 @@ import mdStores from './marketDataStores';
 
 export default function createMarketData(config) {
   const {
-    name,
+    serviceName,
   } = config;
 
-  const debug = createDebug(`marketData ${name}`);
+  const debug = createDebug(`marketData ${serviceName}`);
   const smartwinDB = mongodb.getdb();
 
   try {
@@ -130,6 +130,6 @@ export default function createMarketData(config) {
     const marketData = marketDataBase;
     return marketData;
   } catch (error) {
-    debug(`createMarketData() ${name}@${config.dataFeed.name} Error: %o`, error);
+    debug(`createMarketData() ${serviceName}@${config.dataFeed.name} Error: %o`, error);
   }
 }
