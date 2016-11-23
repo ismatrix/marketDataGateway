@@ -44,6 +44,20 @@ export default function createSubscriptionStore(config) {
       }
     };
 
+    const getDataFeedsSubscriptions = () => {
+      try {
+        const dataFeedsNames = Object.getOwnPropertyNames(subsArrCollection);
+        const dataFeedsSubscriptions = dataFeedsNames.map(elem => ({
+          dataFeedName: elem,
+          subscriptions: subsArrCollection[elem],
+        }));
+
+        return dataFeedsSubscriptions;
+      } catch (error) {
+        debug('Error getDataFeedsSubscriptions(): %o', error);
+      }
+    };
+
     const isSubscribed = (mdData, collectionName) => {
       try {
         if (!Array.isArray(subsArrCollection[collectionName])) {
@@ -95,6 +109,7 @@ export default function createSubscriptionStore(config) {
       config,
       addSub,
       getSubs,
+      getDataFeedsSubscriptions,
       isSubscribed,
       removeSub,
       removeDataTypeSubs,

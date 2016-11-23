@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package marketDataGatewayAdmin;
+
+service MarketDataGatewayAdmin {
+  rpc GetMarketDatasConfigs(Empty) returns (MarketDatasConfigs) {}
+  rpc GetSubscriptionsStores(Empty) returns (SubscriptionsStores) {}
+}
+
+message Empty {
+}
+
+message MarketDatasConfigs {
+  repeated MarketDataConfig marketDatasConfigs = 1;
+}
+
+message MarketDataConfig {
+  string serviceName = 1;
+  repeated DataFeedConfig dataFeeds = 2;
+}
+
+message DataFeedConfig {
+  string name = 1;
+  repeated string dataTypes = 2;
+  ServerConfig server = 3;
+}
+
+message ServerConfig {
+  string ip = 1;
+  string port = 2;
+}
+
+message SubscriptionsStores {
+  repeated SubscriptionsStore subscriptionsStores = 1;
+}
+
+message SubscriptionsStore {
+  string storeName = 1;
+  repeated DataFeedSubscriptions dataFeedsSubscriptions = 2;
+}
+
+message DataFeedSubscriptions {
+  string dataFeedName = 1;
+  repeated Subscription subscriptions = 2;
+}
+
+message Subscription {
+  string symbol = 1;
+  string resolution = 2;
+  string dataType = 3;
+}

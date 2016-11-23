@@ -1,1 +1,2 @@
+import "marketDataGatewayAdmin.proto";
 import "smartwinFuturesMd.proto";

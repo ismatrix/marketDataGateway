@@ -69,12 +69,26 @@ function countAllSub(subToCount, collectionName) {
   }
 }
 
+function getSubscriptionsStores() {
+  try {
+    const subscriptionsStores = subStores.map(elem => ({
+      storeName: elem.config.name,
+      dataFeedsSubscriptions: elem.getDataFeedsSubscriptions(),
+    }));
+
+    return subscriptionsStores;
+  } catch (error) {
+    debug('Error getSubscriptionsStores(): %o', error);
+  }
+}
+
 const subscriptionStoresBase = {
   addAndGetSubStore,
   removeSubStore,
   getSubStores,
   getAllSubs,
   countAllSub,
+  getSubscriptionsStores,
 };
 
 export default subscriptionStoresBase;

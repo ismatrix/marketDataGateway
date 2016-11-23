@@ -53,6 +53,14 @@ async function main() {
     );
 
     const server = new grpc.Server();
+
+    // load marketDataGatewayAdmin service
+    server.addProtoService(
+      marketDataProto.marketDataGatewayAdmin.MarketDataGatewayAdmin.service,
+      marketDataGatewayGrpc.marketDataGatewayAdmin,
+    );
+
+    // load unique marketData interface service
     for (const config of marketDataConfigs) {
       debug('config %o', config);
       server.addProtoService(

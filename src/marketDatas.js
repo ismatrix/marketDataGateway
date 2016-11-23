@@ -38,9 +38,27 @@ function getMarketData(marketDataName) {
   }
 }
 
+function getMarketDatasConfigs() {
+  try {
+    const marketDatasConfigs = marketDatasArr.map(elem => ({
+      serviceName: elem.config.serviceName,
+      dataFeeds: elem.config.dataFeeds.map(df => ({
+        name: df.name,
+        dataTypes: df.dataTypes,
+        server: df.server,
+      })),
+    })
+    );
+    return marketDatasConfigs;
+  } catch (error) {
+    debug('Error getMarketDatasConfigs(): %o', error);
+  }
+}
+
 const marketDatas = {
   addMarketData,
   getMarketData,
+  getMarketDatasConfigs,
 };
 
 export default marketDatas;
