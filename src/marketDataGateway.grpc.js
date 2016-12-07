@@ -1,5 +1,5 @@
 import marketDataGatewayAdmin from './marketDataGatewayAdmin.grpc';
-import smartwinFuturesMd from './smartwinFuturesMd.grpc';
+import smartwinFuturesMd from './smartwinFutures.Md/smartwinFutures.Md.grpc';
 
 const marketDataGatewayServices = {
   marketDataGatewayAdmin,

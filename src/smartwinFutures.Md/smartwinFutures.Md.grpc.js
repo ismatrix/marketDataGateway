@@ -1,8 +1,8 @@
 import createDebug from 'debug';
-import marketDatas from './marketDatas';
-import subStores from './subscriptionStores';
-import dataFeeds from './dataFeeds';
-import grpcCan from './acl';
+import marketDatas from '../marketDatas';
+import subStores from '../subscriptionStores';
+import dataFeeds from '../dataFeeds';
+import grpcCan from '../acl';
 
 const debug = createDebug('smartwinFuturesMd.grpc');
 
@@ -218,7 +218,7 @@ async function getInstruments(call, callback) {
   try {
     await grpcCan(call, 'read', 'getOrders');
 
-    debug('symbols: %o', call.request.symbols);
+    debug('getInstruments() symbols: %o', call.request.symbols);
     const marketData = marketDatas.getMarketData(serviceName);
 
     const instruments = await marketData.getInstruments(call.request.symbols);

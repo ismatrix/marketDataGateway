@@ -27,6 +27,7 @@ export default function createMarketData(config) {
         await Promise.all(connectPromises);
       } catch (error) {
         debug('Error init(): %o', error);
+        throw error;
       }
     };
 
@@ -38,6 +39,7 @@ export default function createMarketData(config) {
         throw new Error('dataType not found in dataFeeds config');
       } catch (error) {
         debug('Error dataTypeToDataFeedName(): %o', error);
+        throw error;
       }
     };
 
@@ -53,6 +55,7 @@ export default function createMarketData(config) {
         return subscription;
       } catch (error) {
         debug('Error subscribe(): %o', error);
+        throw error;
       }
     };
 
@@ -66,6 +69,7 @@ export default function createMarketData(config) {
         dataFeeds.unsubscribe(theDataFeedName, subToRemove);
       } catch (error) {
         debug('Error subscribe(): %o', error);
+        throw error;
       }
     };
 
@@ -95,6 +99,7 @@ export default function createMarketData(config) {
         return tickers;
       } catch (error) {
         debug('Error getLastMarketDatas %o', error);
+        throw error;
       }
     };
 
@@ -114,6 +119,7 @@ export default function createMarketData(config) {
         return instruments;
       } catch (error) {
         debug('Error getInstruments(): %o', error);
+        throw error;
       }
     };
 

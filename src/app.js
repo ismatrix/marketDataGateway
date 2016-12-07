@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import grpc from 'grpc';
 import program from 'commander';
+import pmx from 'pmx';
 import { upperFirst } from 'lodash';
 import marketDataGatewayGrpc from './marketDataGateway.grpc';
 import mongodb from './mongodb';
@@ -20,6 +21,11 @@ program
 
 const grpcUrl = `${grpcConfig.ip}:${grpcConfig.port}`;
 const debug = createDebug(`app ${grpcUrl}`);
+
+pmx.init({
+  network: true,
+  ports: true,
+});
 
 async function init() {
   try {
