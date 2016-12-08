@@ -4,15 +4,15 @@ import dataFeeds from './dataFeeds';
 import subStores from './subscriptionStores';
 import mdStores from './marketDataStores';
 
+const debug = createDebug('app:marketData');
+const logError = createDebug('app:marketData:error');
+logError.log = console.error.bind(console);
+
+
 export default function createMarketData(config) {
-  const {
-    serviceName,
-  } = config;
-
-  const debug = createDebug(`marketData ${serviceName}`);
-  const smartwinDB = mongodb.getdb();
-
   try {
+    const smartwinDB = mongodb.getdb();
+
     for (const dataFeedConfig of config.dataFeeds) {
       dataFeeds.addDataFeed(dataFeedConfig);
     }
@@ -26,7 +26,7 @@ export default function createMarketData(config) {
         debug('connectPromises %o', connectPromises);
         await Promise.all(connectPromises);
       } catch (error) {
-        debug('Error init(): %o', error);
+        logError('init(): %o', error);
         throw error;
       }
     };
@@ -38,7 +38,7 @@ export default function createMarketData(config) {
         }
         throw new Error('dataType not found in dataFeeds config');
       } catch (error) {
-        debug('Error dataTypeToDataFeedName(): %o', error);
+        logError('dataTypeToDataFeedName(): %o', error);
         throw error;
       }
     };
@@ -54,7 +54,7 @@ export default function createMarketData(config) {
 
         return subscription;
       } catch (error) {
-        debug('Error subscribe(): %o', error);
+        logError('subscribeMarketData(): %o', error);
         throw error;
       }
     };
@@ -68,7 +68,7 @@ export default function createMarketData(config) {
 
         dataFeeds.unsubscribe(theDataFeedName, subToRemove);
       } catch (error) {
-        debug('Error subscribe(): %o', error);
+        logError('unsubscribeMarketData(): %o', error);
         throw error;
       }
     };
@@ -83,7 +83,8 @@ export default function createMarketData(config) {
         }
         throw new Error('No dataFeed for this dataType');
       } catch (error) {
-        debug('Error getDataFeed(): %o', error);
+        logError('getDataFeed(): %o', error);
+        throw error;
       }
     };
 
@@ -98,7 +99,7 @@ export default function createMarketData(config) {
           ;
         return tickers;
       } catch (error) {
-        debug('Error getLastMarketDatas %o', error);
+        logError('getLastMarketDatas(): %o', error);
         throw error;
       }
     };
@@ -118,7 +119,7 @@ export default function createMarketData(config) {
         });
         return instruments;
       } catch (error) {
-        debug('Error getInstruments(): %o', error);
+        logError('getInstruments(): %o', error);
         throw error;
       }
     };
@@ -136,6 +137,7 @@ export default function createMarketData(config) {
     const marketData = marketDataBase;
     return marketData;
   } catch (error) {
-    debug(`createMarketData() ${serviceName}@${config.dataFeed.name} Error: %o`, error);
+    debug('createMarketData(): %o', error);
+    throw error;
   }
 }

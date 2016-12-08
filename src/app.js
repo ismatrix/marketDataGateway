@@ -20,7 +20,10 @@ program
   .parse(process.argv);
 
 const grpcUrl = `${grpcConfig.ip}:${grpcConfig.port}`;
-const debug = createDebug(`app ${grpcUrl}`);
+const debug = createDebug(`app:main:${grpcUrl}`);
+const logError = createDebug(`app:main:${grpcUrl}:error`);
+logError.log = console.error.bind(console);
+process.on('uncaughtException', error => logError('process.on(uncaughtException): %o', error));
 
 pmx.init({
   network: true,
@@ -34,7 +37,7 @@ async function init() {
       marketDataConfigs.map(conf => marketDatas.addMarketData(conf)),
     ));
   } catch (error) {
-    debug('Error init(): %o', error);
+    logError('init(): %o', error);
   }
 }
 
@@ -78,7 +81,7 @@ async function main() {
     server.bind(`${grpcConfig.ip}:${grpcConfig.port}`, sslCreds);
     server.start();
   } catch (error) {
-    debug('Error main(): %o', error);
+    logError('main(): %o', error);
   }
 }
 main();

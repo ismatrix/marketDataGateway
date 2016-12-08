@@ -4,7 +4,9 @@ import createDataFeed from './dataFeed';
 import subStores from './subscriptionStores';
 import mdStores from './marketDataStores';
 
-const debug = createDebug('dataFeeds');
+const debug = createDebug('app:dataFeeds');
+const logError = createDebug('app:dataFeeds:error');
+logError.log = console.error.bind(console);
 
 const dataFeedsArr = [];
 
@@ -25,7 +27,8 @@ async function addDataFeed(config) {
 
     dataFeedsArr.push(newDataFeed);
   } catch (error) {
-    debug('Error addDataFeed(): %o', error);
+    logError('addDataFeed(): %o', error);
+    throw error;
   }
 }
 
@@ -36,7 +39,8 @@ function getDataFeed(dataFeedName) {
 
     throw new Error('dataFeed not found');
   } catch (error) {
-    debug('Error getDataFeed(): %o', error);
+    logError('getDataFeed(): %o', error);
+    throw error;
   }
 }
 
@@ -45,7 +49,8 @@ const getSubscriptions = () => {
     const globalSubStore = subStores.addAndGetSubStore({ name: 'global' });
     return globalSubStore;
   } catch (error) {
-    debug('Error getSubscriptions(): %o', error);
+    logError('getSubscriptions(): %o', error);
+    throw error;
   }
 };
 
@@ -63,7 +68,8 @@ const subscribe = async (theDataFeedName, newSub) => {
     globalSubStore.addSub(newSub, theDataFeedName);
     return newSub;
   } catch (error) {
-    debug('Error subscribe(): %o', error);
+    logError('subscribe(): %o', error);
+    throw error;
   }
 };
 
@@ -80,7 +86,8 @@ const unsubscribe = async (theDataFeedName, subToRemove) => {
     globalSubStore.removeSub(subToRemove, theDataFeedName);
     return subToRemove;
   } catch (error) {
-    debug('Error unsubscribe(): %o', error);
+    logError('unsubscribe(): %o', error);
+    throw error;
   }
 };
 
@@ -120,7 +127,8 @@ const clearGlobalSubsDiff = async () => {
       needUnsubscribe.map(elem => unsubscribe(key, elem));
     }
   } catch (error) {
-    debug('Error clearGlobalSubsDiff(): %o', error);
+    logError('clearGlobalSubsDiff(): %o', error);
+    throw error;
   }
 };
 

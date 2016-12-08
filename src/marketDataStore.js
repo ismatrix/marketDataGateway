@@ -1,12 +1,15 @@
 import createDebug from 'debug';
 
-export default function createMarketDataStore(config) {
-  const {
-    dataFeed,
-  } = config;
-  const debug = createDebug(`marketDataStore ${dataFeed.config.name}`);
+const debug = createDebug('app:marketDataStore');
+const logError = createDebug('app:marketDataStore:error');
+logError.log = console.error.bind(console);
 
+export default function createMarketDataStore(config) {
   try {
+    const {
+      dataFeed,
+    } = config;
+
     const marketDataStore = [];
 
     const matchSubscription = newSub => sub => (
@@ -37,7 +40,8 @@ export default function createMarketDataStore(config) {
         }
         debug('marketDataStore.length %o', marketDataStore.length);
       } catch (error) {
-        debug('Error addMarketData(): %o', error);
+        logError('addMarketData(): %o', error);
+        throw error;
       }
     };
 
@@ -48,7 +52,7 @@ export default function createMarketDataStore(config) {
           debug('add new MarketData %o', { symbol: data.symbol, resolution: data.resolution, dataType: data.dataType });
           addMarketData(data);
         })
-        .on('error', error => debug('Error newDataFeed.onDataType: %o', error))
+        .on('error', error => logError('dataFeed.on(error): %o', error))
         ;
     }
 
@@ -56,7 +60,8 @@ export default function createMarketDataStore(config) {
       try {
         return marketDataStore;
       } catch (error) {
-        debug('Error getMarketDataStore(): %o', error);
+        logError('getMarketDataStore(): %o', error);
+        throw error;
       }
     };
 
@@ -65,7 +70,8 @@ export default function createMarketDataStore(config) {
         const lastMarketData = marketDataStore.find(matchMarketData(sub));
         return lastMarketData;
       } catch (error) {
-        debug('Error getLast(): %o', error);
+        logError('getLastMarketData(): %o', error);
+        throw error;
       }
     };
 
@@ -77,6 +83,7 @@ export default function createMarketDataStore(config) {
 
     return marketDataStoreBase;
   } catch (error) {
-    debug('Error createMarketDataStore(): %o', error);
+    logError('createMarketDataStore(): %o', error);
+    throw error;
   }
 }

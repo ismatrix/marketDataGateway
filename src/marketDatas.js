@@ -1,7 +1,8 @@
 import createDebug from 'debug';
 import createMarketData from './marketData';
 
-const debug = createDebug('marketDatas');
+const logError = createDebug('app:marketDatas:error');
+logError.log = console.error.bind(console);
 
 const marketDatasArr = [];
 
@@ -20,7 +21,8 @@ async function addMarketData(config) {
 
     marketDatasArr.push(newMarketData);
   } catch (error) {
-    debug('Error addMarketData(): %o', error);
+    logError('addMarketData(): %o', error);
+    throw error;
   }
 }
 
@@ -34,7 +36,8 @@ function getMarketData(marketDataName) {
 
     throw new Error('marketData not found');
   } catch (error) {
-    debug('Error getMarketData(): %o', error);
+    logError('getMarketData(): %o', error);
+    throw error;
   }
 }
 
@@ -51,7 +54,8 @@ function getMarketDatasConfigs() {
     );
     return marketDatasConfigs;
   } catch (error) {
-    debug('Error getMarketDatasConfigs(): %o', error);
+    logError('getMarketDatasConfigs(): %o', error);
+    throw error;
   }
 }
 

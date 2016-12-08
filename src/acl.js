@@ -4,7 +4,8 @@ import NodeAclCb from 'acl';
 import jwtCb from 'jsonwebtoken';
 import Promise from 'bluebird';
 
-const debug = createDebug('acl');
+const logError = createDebug('app:acl:error');
+logError.log = console.error.bind(console);
 const NodeAcl = Promise.promisifyAll(NodeAclCb);
 const jwt = Promise.promisifyAll(jwtCb);
 const acl = new NodeAcl(new NodeAcl.memoryBackend());
@@ -64,7 +65,7 @@ async function can(roles, permissions, resource) {
     const isRoleAuthorized = await acl.areAnyRolesAllowed(roles, resource, permissions);
     return isRoleAuthorized;
   } catch (error) {
-    debug('can() Error: %o', error);
+    logError('can() %o', error);
     throw error;
   }
 }
@@ -74,7 +75,6 @@ async function grpcCan(ctx, permissions, resource) {
     const user = await jwt.verifyAsync(ctx.metadata.get('Authorization')[0], jwtSecret);
 
     const roles = user.dpt ? user.dpt.concat(user.userid) : [].concat(user.userid);
-    debug(roles);
 
     const hasRight = await can(roles, permissions, resource);
 
@@ -83,7 +83,7 @@ async function grpcCan(ctx, permissions, resource) {
     }
     return user;
   } catch (error) {
-    debug('grpcCan() Error: %o', error);
+    logError('grpcCan() %o', error);
     const err = new Error('Access forbidden');
     err.code = grpc.status.UNAUTHENTICATED;
     throw err;

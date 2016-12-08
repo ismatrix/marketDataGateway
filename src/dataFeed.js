@@ -2,14 +2,15 @@ import createDebug from 'debug';
 import createIceLiveDataFeed from 'sw-datafeed-icelive';
 import createMongodbDataFeed from 'sw-datafeed-mongodb';
 
-export default function createDataFeed(config) {
-  const {
-    name,
-    server,
-  } = config;
+const logError = createDebug('app:dataFeed:error');
+logError.log = console.error.bind(console);
 
-  const debug = createDebug(`dataFeed ${name}@${server.ip}:${server.port}`);
+export default function createDataFeed(config) {
   try {
+    const {
+      name,
+    } = config;
+
     let dataFeed;
 
     switch (name) {
@@ -25,6 +26,7 @@ export default function createDataFeed(config) {
 
     return Object.assign(dataFeed, { config });
   } catch (error) {
-    debug('Error createDataFeed(): %o', error);
+    logError('createDataFeed(): %o', error);
+    throw error;
   }
 }

@@ -6,11 +6,11 @@ const matchSubscription = newSub => sub => (
   sub.resolution === newSub.resolution &&
   sub.dataType === newSub.dataType);
 
+const debug = createDebug('app:subscriptionStore');
+const logError = createDebug('app:subscriptionStore:error');
+logError.log = console.error.bind(console);
+
 export default function createSubscriptionStore(config) {
-  const {
-    name,
-  } = config;
-  const debug = createDebug(`${name}@subscriptionStore`);
   try {
     const subsArrCollection = {};
 
@@ -29,7 +29,8 @@ export default function createSubscriptionStore(config) {
           debug('sub already in store %o', `${newSub.symbol}:${newSub.dataType}`);
         }
       } catch (error) {
-        debug('Error addSub(): %o', error);
+        logError('addSub(): %o', error);
+        throw error;
       }
     };
 
@@ -40,7 +41,8 @@ export default function createSubscriptionStore(config) {
 
         return subsArrCollection[collectionName];
       } catch (error) {
-        debug('Error getSubs(): %o', error);
+        logError('getSubs(): %o', error);
+        throw error;
       }
     };
 
@@ -54,7 +56,8 @@ export default function createSubscriptionStore(config) {
 
         return dataFeedsSubscriptions;
       } catch (error) {
-        debug('Error getDataFeedsSubscriptions(): %o', error);
+        logError('getDataFeedsSubscriptions(): %o', error);
+        throw error;
       }
     };
 
@@ -72,7 +75,8 @@ export default function createSubscriptionStore(config) {
         }
         return false;
       } catch (error) {
-        debug('Error isSubscribed(): %o', error);
+        logError('isSubscribed(): %o', error);
+        throw error;
       }
     };
 
@@ -89,7 +93,8 @@ export default function createSubscriptionStore(config) {
           debug('removeSub %o', removedSub);
         }
       } catch (error) {
-        debug('Error removeSub(): %o', error);
+        logError('removeSub(): %o', error);
+        throw error;
       }
     };
 
@@ -101,7 +106,8 @@ export default function createSubscriptionStore(config) {
           storeSub => storeSub.dataType === dataType);
         debug('removeDataTypeSubs %o', removedDataTypeSubs);
       } catch (error) {
-        debug('Error removeDataTypeSubs(): %o', error);
+        logError('removeDataTypeSubs(): %o', error);
+        throw error;
       }
     };
 
@@ -117,6 +123,7 @@ export default function createSubscriptionStore(config) {
 
     return subscriptionsStoreBase;
   } catch (error) {
-    debug('Error createSubscriptionStore() %o', error);
+    logError('createSubscriptionStore(): %o', error);
+    throw error;
   }
 }

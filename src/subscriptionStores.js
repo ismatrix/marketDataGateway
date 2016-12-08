@@ -3,6 +3,8 @@ import { remove } from 'lodash';
 import createSubscriptionStore from './subscriptionStore';
 
 const debug = createDebug('subscriptionStores');
+const logError = createDebug('app:subscriptionStores:error');
+logError.log = console.error.bind(console);
 
 const subStores = [];
 
@@ -26,7 +28,8 @@ function addAndGetSubStore(config) {
     subStores.push(newSubStore);
     return newSubStore;
   } catch (error) {
-    debug('Error addAndGetSubStore(): %o', error);
+    logError('addAndGetSubStore(): %o', error);
+    throw error;
   }
 }
 
@@ -34,7 +37,8 @@ function getSubStores() {
   try {
     return subStores;
   } catch (error) {
-    debug('Error addAndGetSubStore(): %o', error);
+    logError('addAndGetSubStore(): %o', error);
+    throw error;
   }
 }
 
@@ -43,7 +47,8 @@ function removeSubStore(config) {
     const removedSubStore = remove(subStores, matchSubStore(config));
     debug('removedSubStore %o', removedSubStore);
   } catch (error) {
-    debug('Error removeSubStore(): %o', error);
+    logError('removeSubStore(): %o', error);
+    throw error;
   }
 }
 
@@ -54,7 +59,8 @@ function getAllSubs(collectionName) {
     , []);
     return allSubs;
   } catch (error) {
-    debug('Error getAllSubs(): %o', error);
+    logError('getAllSubs(): %o', error);
+    throw error;
   }
 }
 
@@ -65,7 +71,8 @@ function countAllSub(subToCount, collectionName) {
     debug('number of similar sub %o', allSimilarSubs.length);
     return allSimilarSubs.length;
   } catch (error) {
-    debug('Error countAllSub(): %o', error);
+    logError('countAllSub(): %o', error);
+    throw error;
   }
 }
 
@@ -78,7 +85,8 @@ function getSubscriptionsStores() {
 
     return subscriptionsStores;
   } catch (error) {
-    debug('Error getSubscriptionsStores(): %o', error);
+    logError('getSubscriptionsStores(): %o', error);
+    throw error;
   }
 }
 

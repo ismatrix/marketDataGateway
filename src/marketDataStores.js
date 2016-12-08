@@ -1,7 +1,8 @@
 import createDebug from 'debug';
 import createMarketDataStore from './marketDataStore';
 
-const debug = createDebug('marketDataStores');
+const logError = createDebug('app:marketDataStores:error');
+logError.log = console.error.bind(console);
 
 const mdStores = [];
 
@@ -18,7 +19,7 @@ function addAndGetMdStore(config) {
     mdStores.push(newMdStore);
     return newMdStore;
   } catch (error) {
-    debug('Error addAndGetMdStore(): %o', error);
+    logError('addAndGetMdStore(): %o', error);
   }
 }
 
@@ -37,7 +38,7 @@ function getMdStoreByName(mdStoreName) {
 
     throw new Error('marketDataStore not found');
   } catch (error) {
-    debug('Error getMdStoreByName(): %o', error);
+    logError('getMdStoreByName(): %o', error);
   }
 }
 
