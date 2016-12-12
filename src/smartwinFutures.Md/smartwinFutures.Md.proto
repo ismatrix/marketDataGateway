@@ -16,13 +16,13 @@ service SmartwinFuturesMd {
   rpc GetLastTickers(Subscriptions) returns (LastTickersResponse) {}
   rpc GetLastDayBars(Subscriptions) returns (LastDayBarsResponse) {}
 
-  rpc GetInstruments(GetInstruments) returns (Instruments) {}
+  rpc GetInstruments(GetInstrumentsRequest) returns (Instruments) {}
 }
 
 message Empty {
 }
 
-message GetInstruments {
+message GetInstrumentsRequest {
   repeated string symbols = 1;
 }
 
