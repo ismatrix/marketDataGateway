@@ -4,17 +4,20 @@ import subStores from '../subscriptionStores';
 import dataFeeds from '../dataFeeds';
 import grpcCan from '../acl';
 
-const debug = createDebug('smartwinFuturesMd.grpc');
+const debug = createDebug('app:smartwinFuturesMd.grpc');
+const logError = createDebug('app:smartwinFuturesMd.grpc:error');
+logError.log = console.error.bind(console);
 
 const serviceName = 'smartwinFuturesMd';
 
 async function setMarketDataStream(stream, eventName) {
-  const user = await grpcCan(stream, 'read', 'getOrders');
-
-  const sessionid = stream.metadata.get('sessionid')[0];
-  const streamDebug = createDebug(`${eventName}@${user.userid}:${sessionid.substr(0, 6)}@smartwinFuturesMd.grpc`);
-
   try {
+    logError('the token: %o', stream.metadata.get('Authorization')[0]);
+    const user = await grpcCan(stream, 'read', 'getOrders');
+
+    const sessionid = stream.metadata.get('sessionid')[0];
+    const streamDebug = createDebug(`${eventName}@${user.userid}:${sessionid.substr(0, 6)}@smartwinFuturesMd.grpc`);
+
     const marketData = marketDatas.getMarketData(serviceName);
     streamDebug('get%oStream()', eventName);
 
@@ -38,23 +41,23 @@ async function setMarketDataStream(stream, eventName) {
 
     theDataFeed
       .on(eventName, listener)
-      .on('error', error => streamDebug('%o.onError: %o', eventName, error))
+      .on('error', error => logError('%o.onError: %o', eventName, error))
       ;
 
     stream
       .on('cancelled', () => {
-        streamDebug('connection cancelled');
+        logError('connection cancelled');
         theDataFeed.removeListener(eventName, listener);
         theSessionSubs.removeDataTypeSubs(eventName, theDataFeed.config.name);
         dataFeeds.clearGlobalSubsDiff();
       })
       .on('error', (error) => {
-        streamDebug('%oStream.onError: %o', eventName, error);
+        logError('%oStream.onError: %o', eventName, error);
         theDataFeed.removeListener(eventName, listener);
       })
       ;
   } catch (error) {
-    streamDebug('Error setMarketDataStream() %o', error);
+    logError('Error setMarketDataStream() %o', error);
     stream.emit('error', error);
   }
 }
@@ -64,7 +67,7 @@ async function getMarketDepthStream(stream) {
     const eventName = 'marketDepth';
     await setMarketDataStream(stream, eventName);
   } catch (error) {
-    debug('Error getMarketDepthStream(): %o', error);
+    logError('Error getMarketDepthStream(): %o', error);
     stream.emit('error', error);
   }
 }
@@ -74,7 +77,7 @@ async function getBarStream(stream) {
     const eventName = 'bar';
     await setMarketDataStream(stream, eventName);
   } catch (error) {
-    debug('Error getBarStream(): %o', error);
+    logError('Error getBarStream(): %o', error);
     stream.emit('error', error);
   }
 }
