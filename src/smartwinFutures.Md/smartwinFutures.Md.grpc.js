@@ -20,7 +20,6 @@ function createCallID(call) {
 
 async function setMarketDataStream(stream, eventName) {
   try {
-    logError('the token: %o', stream.metadata.get('Authorization')[0]);
     const user = await grpcCan(stream, 'read', 'getOrders');
 
     const sessionid = stream.metadata.get('sessionid')[0];
