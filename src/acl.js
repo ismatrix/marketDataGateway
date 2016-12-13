@@ -4,7 +4,6 @@ import NodeAclCb from 'acl';
 import jwtCb from 'jsonwebtoken';
 import Promise from 'bluebird';
 
-const debug = createDebug('app:acl');
 const logError = createDebug('app:acl:error');
 logError.log = console.error.bind(console);
 const NodeAcl = Promise.promisifyAll(NodeAclCb);
@@ -75,7 +74,7 @@ async function grpcCan(ctx, permissions, resource) {
   try {
     const authMetadata = ctx.metadata.get('Authorization')[0];
     const jwtoken = authMetadata.substring(0, 7) === 'Bearer ' ? authMetadata.substring(7) : authMetadata;
-    debug('jwtoken %o', jwtoken);
+
     const user = await jwt.verifyAsync(jwtoken, jwtSecret);
 
     const roles = user.dpt ? user.dpt.concat(user.userid) : [].concat(user.userid);
