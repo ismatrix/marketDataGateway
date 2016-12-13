@@ -2,7 +2,7 @@ import createDebug from 'debug';
 import { remove } from 'lodash';
 import createSubscriptionStore from './subscriptionStore';
 
-const debug = createDebug('subscriptionStores');
+const debug = createDebug('app:subscriptionStores');
 const logError = createDebug('app:subscriptionStores:error');
 logError.log = console.error.bind(console);
 
