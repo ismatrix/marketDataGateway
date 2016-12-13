@@ -72,7 +72,10 @@ async function can(roles, permissions, resource) {
 
 async function grpcCan(ctx, permissions, resource) {
   try {
-    const user = await jwt.verifyAsync(ctx.metadata.get('Authorization')[0], jwtSecret);
+    const authMetadata = ctx.metadata.get('Authorization')[0];
+    const jwtoken = authMetadata.substring(0, 7) === 'Bearer ' ? authMetadata.substring(8) : authMetadata;
+    logError('jwtoken %o', jwtoken);
+    const user = await jwt.verifyAsync(jwtoken, jwtSecret);
 
     const roles = user.dpt ? user.dpt.concat(user.userid) : [].concat(user.userid);
 

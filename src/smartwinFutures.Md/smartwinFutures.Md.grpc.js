@@ -10,6 +10,14 @@ logError.log = console.error.bind(console);
 
 const serviceName = 'smartwinFuturesMd';
 
+function createCallID(call) {
+  const sessionid = call.metadata.get('sessionid')[0];
+  const fundid = call.request.fundid;
+  const peer = call.getPeer();
+  const streamID = `${sessionid.substr(0, 6)}:@${peer}>>@${fundid}`;
+  return streamID;
+}
+
 async function setMarketDataStream(stream, eventName) {
   try {
     logError('the token: %o', stream.metadata.get('Authorization')[0]);
@@ -35,13 +43,13 @@ async function setMarketDataStream(stream, eventName) {
           stream.write(data);
         }
       } catch (error) {
-        streamDebug('Error listener() %o', error);
+        streamDebug('listener() %o', error);
       }
     };
 
     theDataFeed
       .on(eventName, listener)
-      .on('error', error => logError('%o.onError: %o', eventName, error))
+      .on('error', error => logError('theDataFeed.on(error): %o', eventName, error))
       ;
 
     stream
@@ -52,12 +60,12 @@ async function setMarketDataStream(stream, eventName) {
         dataFeeds.clearGlobalSubsDiff();
       })
       .on('error', (error) => {
-        logError('%oStream.onError: %o', eventName, error);
+        logError('stream.on(error): %o', eventName, error);
         theDataFeed.removeListener(eventName, listener);
       })
       ;
   } catch (error) {
-    logError('Error setMarketDataStream() %o', error);
+    logError('setMarketDataStream() %o', error);
     stream.emit('error', error);
   }
 }
@@ -67,7 +75,7 @@ async function getMarketDepthStream(stream) {
     const eventName = 'marketDepth';
     await setMarketDataStream(stream, eventName);
   } catch (error) {
-    logError('Error getMarketDepthStream(): %o', error);
+    logError('getMarketDepthStream(): %o', error);
     stream.emit('error', error);
   }
 }
@@ -77,7 +85,7 @@ async function getBarStream(stream) {
     const eventName = 'bar';
     await setMarketDataStream(stream, eventName);
   } catch (error) {
-    logError('Error getBarStream(): %o', error);
+    logError('getBarStream(): %o', error);
     stream.emit('error', error);
   }
 }
@@ -87,7 +95,7 @@ async function getTickerStream(stream) {
     const eventName = 'ticker';
     await setMarketDataStream(stream, eventName);
   } catch (error) {
-    debug('Error getTickerStream(): %o', error);
+    debug('getTickerStream(): %o', error);
     stream.emit('error', error);
   }
 }
@@ -97,7 +105,7 @@ async function getDayBarStream(stream) {
     const eventName = 'dayBar';
     await setMarketDataStream(stream, eventName);
   } catch (error) {
-    debug('Error getDayBarStream(): %o', error);
+    logError('getDayBarStream(): %o', error);
     stream.emit('error', error);
   }
 }
@@ -115,7 +123,7 @@ async function subscribeMarketData(call, callback) {
 
     callback(null, subscription);
   } catch (error) {
-    debug('Error subscribeMarketData %o', error);
+    logError('subscribeMarketData(): %o', error);
     callback(error);
   }
 }
@@ -134,7 +142,7 @@ async function unsubscribeMarketData(call, callback) {
 
     callback(null, subToRemove);
   } catch (error) {
-    debug('Error unsubscribeMarketData %o', error);
+    logError('unsubscribeMarketData: %o', error);
     callback(error);
   }
 }
@@ -153,7 +161,7 @@ async function getLastMarketDepths(call, callback) {
     debug('%os %o', dataType, marketDepths);
     callback(null, { marketDepths });
   } catch (error) {
-    debug('Error getLastMarketDepths %o', error);
+    logError('getLastMarketDepths: %o', error);
     callback(error);
   }
 }
@@ -172,7 +180,7 @@ async function getLastBars(call, callback) {
     debug('%os %o', dataType, bars);
     callback(null, { bars });
   } catch (error) {
-    debug('Error getLastBars %o', error);
+    logError('getLastBars(): %o', error);
     callback(error);
   }
 }
@@ -192,7 +200,7 @@ async function getLastTickers(call, callback) {
     debug('%os %o', dataType, tickers);
     callback(null, { tickers });
   } catch (error) {
-    debug('Error getLastTickers %o', error);
+    logError('getLastTickers(): %o', error);
     callback(error);
   }
 }
@@ -212,7 +220,7 @@ async function getLastDayBars(call, callback) {
     debug('%os %o', dataType, dayBars);
     callback(null, { dayBars });
   } catch (error) {
-    debug('Error getLastTickers %o', error);
+    logError('getLastTickers(): %o', error);
     callback(error);
   }
 }
@@ -228,7 +236,7 @@ async function getInstruments(call, callback) {
     // debug('instruments %o', instruments);
     callback(null, { instruments });
   } catch (error) {
-    debug('Error getInstruments %o', error);
+    logError('getInstruments(): %o', error);
     callback(error);
   }
 }
