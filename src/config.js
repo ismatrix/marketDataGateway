@@ -12,8 +12,24 @@ export const marketDataConfigs = [
     serviceName: 'smartwinFuturesMd',
     dataFeeds: [
       {
+        name: 'icePast',
+        dataTypes: ['ticker', 'bar'],
+        dataDescriptions: [
+          { dataType: 'ticker', resolution: 'snapshot', mode: 'past' },
+          { dataType: 'bar', resolution: 'minute', mode: 'past' },
+        ],
+        server: {
+          ip: '120.76.98.94',
+          port: '10101',
+        },
+      },
+      {
         name: 'iceLive',
         dataTypes: ['ticker', 'bar', 'marketDepth'],
+        dataDescriptions: [
+          { dataType: 'ticker', resolution: 'snapshot', mode: 'live' },
+          { dataType: 'bar', resolution: 'minute', mode: 'live' },
+        ],
         server: {
           ip: '120.76.98.94',
           port: '4502',
@@ -22,6 +38,10 @@ export const marketDataConfigs = [
       {
         name: 'mongodb',
         dataTypes: ['dayBar'],
+        dataDescriptions: [
+          { dataType: 'dayBar', resolution: 'snapshot', mode: 'live' },
+          { dataType: 'dayBar', resolution: 'snapshot', mode: 'past' },
+        ],
         dbName: 'smartwin',
         collectionName: 'DAYBAR',
         queryInterval: 5000,

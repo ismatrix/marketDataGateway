@@ -14,7 +14,7 @@ const matchDataFeed = newConfig => elem => (
   elem.config.name === newConfig.name
 );
 
-async function addDataFeed(config) {
+function addDataFeed(config) {
   try {
     debug('addDataFeed() config %o', config);
     const existingDataFeed = dataFeedsArr.find(matchDataFeed(config));

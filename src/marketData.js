@@ -1,4 +1,5 @@
 import createDebug from 'debug';
+import { reduce } from 'lodash';
 import mongodb from './mongodb';
 import dataFeeds from './dataFeeds';
 import subStores from './subscriptionStores';
@@ -8,20 +9,24 @@ const debug = createDebug('app:marketData');
 const logError = createDebug('app:marketData:error');
 logError.log = console.error.bind(console);
 
+const matchDataDescription = newDesc => desc => (
+  desc.mode === newDesc.mode &&
+  desc.resolution === newDesc.resolution &&
+  desc.dataType === newDesc.dataType);
+
 
 export default function createMarketData(config) {
   try {
     const smartwinDB = mongodb.getdb();
 
-    for (const dataFeedConfig of config.dataFeeds) {
-      dataFeeds.addDataFeed(dataFeedConfig);
-    }
-
     const init = async () => {
       try {
         const connectPromises = config.dataFeeds
           .map(dataFeedConfig => dataFeeds.getDataFeed(dataFeedConfig.name))
-          .map(dataFeed => dataFeed.connect())
+          .map((dataFeed) => {
+            if ('connect' in dataFeed) return dataFeed.connect();
+            return 'no connect function';
+          })
           ;
         debug('connectPromises %o', connectPromises);
         await Promise.all(connectPromises);
@@ -39,6 +44,49 @@ export default function createMarketData(config) {
         throw new Error('dataType not found in dataFeeds config');
       } catch (error) {
         logError('dataTypeToDataFeedName(): %o', error);
+        throw error;
+      }
+    };
+
+    const subscriptionToDataDescription = (sub) => {
+      try {
+        const dataDescription = {};
+        dataDescription.dataType = sub.dataType;
+        dataDescription.resolution = sub.resolution;
+        dataDescription.mode = (('startDate' in sub) || ('endDate' in sub)) ? 'past' : 'live';
+        debug('dataDescription: %o', dataDescription);
+        return dataDescription;
+      } catch (error) {
+        logError('subscriptionToDataDescription(): %o', error);
+        throw error;
+      }
+    };
+
+    const getDataFeedByDataDescription = (dataDescription) => {
+      try {
+        const dataFeedConfig = config.dataFeeds.find(
+          conf => conf.dataDescriptions.find(matchDataDescription(dataDescription)));
+
+        if ('name' in dataFeedConfig) {
+          const theDataFeed = dataFeeds.getDataFeed(dataFeedConfig.name);
+          return theDataFeed;
+        }
+
+        const flatDataDescription = reduce(dataDescription, (acc, cur) => acc.concat(cur, ':'), '');
+        throw new Error(`dataDescription ${flatDataDescription} not found in dataFeeds config`);
+      } catch (error) {
+        logError('getDataFeedByDataDescription(): %o', error);
+        throw error;
+      }
+    };
+
+    const getDataFeedBySubscription = (sub) => {
+      try {
+        const dataDescription = subscriptionToDataDescription(sub);
+        const dataFeed = getDataFeedByDataDescription(dataDescription);
+        return dataFeed;
+      } catch (error) {
+        logError('getDataFeedBySubscription(): %o', error);
         throw error;
       }
     };
@@ -73,17 +121,19 @@ export default function createMarketData(config) {
       }
     };
 
-    const getDataFeed = (dataType) => {
+    const getDataFeedByDataType = (dataType) => {
       try {
-        const dataFeedConf = config.dataFeeds.find(
+        const dataFeedConfig = config.dataFeeds.find(
           dfConfig => dfConfig.dataTypes.includes(dataType));
-        if ('name' in dataFeedConf) {
-          const theDataFeed = dataFeeds.getDataFeed(dataFeedConf.name);
+
+        if ('name' in dataFeedConfig) {
+          const theDataFeed = dataFeeds.getDataFeed(dataFeedConfig.name);
           return theDataFeed;
         }
+
         throw new Error('No dataFeed for this dataType');
       } catch (error) {
-        logError('getDataFeed(): %o', error);
+        logError('getDataFeedByDataType(): %o', error);
         throw error;
       }
     };
@@ -130,7 +180,9 @@ export default function createMarketData(config) {
       dataTypeToDataFeedName,
       subscribeMarketData,
       unsubscribeMarketData,
-      getDataFeed,
+      getDataFeedByDataType,
+      getDataFeedByDataDescription,
+      getDataFeedBySubscription,
       getLastMarketDatas,
       getInstruments,
     };

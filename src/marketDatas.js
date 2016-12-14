@@ -1,5 +1,6 @@
 import createDebug from 'debug';
 import createMarketData from './marketData';
+import dataFeeds from './dataFeeds';
 
 const logError = createDebug('app:marketDatas:error');
 logError.log = console.error.bind(console);
@@ -14,6 +15,10 @@ async function addMarketData(config) {
   try {
     const existingMarketData = marketDatasArr.find(matchMarketData(config));
     if (existingMarketData !== undefined) return;
+
+    for (const dataFeedConfig of config.dataFeeds) {
+      dataFeeds.addDataFeed(dataFeedConfig);
+    }
 
     const newMarketData = createMarketData(config);
 

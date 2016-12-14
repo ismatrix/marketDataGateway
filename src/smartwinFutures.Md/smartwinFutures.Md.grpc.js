@@ -33,7 +33,7 @@ async function getMarketDataStream(stream, eventName) {
 
     const marketData = marketDatas.getMarketData(serviceName);
 
-    const theDataFeed = marketData.getDataFeed(eventName);
+    const theDataFeed = marketData.getDataFeedByDataType(eventName);
     const theSessionSubs = subStores.addAndGetSubStore({ name: sessionid });
 
     const listener = (data) => {
@@ -107,6 +107,66 @@ async function getDayBarStream(stream) {
     await getMarketDataStream(stream, eventName);
   } catch (error) {
     logError('getDayBarStream(): %o', error);
+    stream.emit('error', error);
+  }
+}
+
+async function getPastMarketDataStream(stream) {
+  const callID = createCallID(stream);
+  try {
+    const user = await grpcCan(stream, 'read', 'getOrders');
+
+    const betterCallID = createBetterCallID(callID, user.userid, stream.request.dataType);
+    debug('getPastMarketDataStream(): grpcCall from callID: %o', betterCallID);
+
+    const marketData = marketDatas.getMarketData(serviceName);
+
+    const theDataFeed = marketData.getDataFeedBySubscription(stream.request);
+    debug('theDataFeed %o', theDataFeed);
+
+    theDataFeed.getDataFeed(stream.request).pipe(stream);
+  } catch (error) {
+    logError('getPastMarketDataStream(): callID: %o, %o', callID, error);
+    throw error;
+  }
+}
+
+async function getPastMarketDepthStream(stream) {
+  try {
+    stream.request.dataType = 'marketDepth';
+    await getPastMarketDataStream(stream);
+  } catch (error) {
+    logError('getPastMarketDepthStream(): %o', error);
+    stream.emit('error', error);
+  }
+}
+
+async function getPastBarStream(stream) {
+  try {
+    stream.request.dataType = 'bar';
+    await getPastMarketDataStream(stream);
+  } catch (error) {
+    logError('getPastBarStream(): %o', error);
+    stream.emit('error', error);
+  }
+}
+
+async function getPastTickerStream(stream) {
+  try {
+    stream.request.dataType = 'ticker';
+    await getPastMarketDataStream(stream);
+  } catch (error) {
+    logError('getPastTickerStream(): %o', error);
+    stream.emit('error', error);
+  }
+}
+
+async function getPastDayBarStream(stream) {
+  try {
+    stream.request.dataType = 'dayBar';
+    await getPastMarketDataStream(stream);
+  } catch (error) {
+    logError('getPastDayBarStream(): %o', error);
     stream.emit('error', error);
   }
 }
@@ -242,8 +302,15 @@ const smartwinFutures = {
   getBarStream,
   getTickerStream,
   getDayBarStream,
+
+  getPastMarketDepthStream,
+  getPastBarStream,
+  getPastTickerStream,
+  getPastDayBarStream,
+
   subscribeMarketData,
   unsubscribeMarketData,
+
   getLastMarketDepths,
   getLastBars,
   getLastTickers,

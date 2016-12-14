@@ -20,6 +20,7 @@ function addAndGetMdStore(config) {
     return newMdStore;
   } catch (error) {
     logError('addAndGetMdStore(): %o', error);
+    throw error;
   }
 }
 
@@ -39,6 +40,7 @@ function getMdStoreByName(mdStoreName) {
     throw new Error('marketDataStore not found');
   } catch (error) {
     logError('getMdStoreByName(): %o', error);
+    throw error;
   }
 }
 

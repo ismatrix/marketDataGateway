@@ -8,6 +8,11 @@ service SmartwinFuturesMd {
   rpc GetTickerStream(Empty) returns (stream Ticker) {}
   rpc GetDayBarStream(Empty) returns (stream DayBar) {}
 
+  rpc GetPastMarketDepthStream(Subscription) returns (stream MarketDepth) {}
+  rpc GetPastBarStream(Subscription) returns (stream Bar) {}
+  rpc GetPastTickerStream(Subscription) returns (stream Ticker) {}
+  rpc GetPastDayBarStream(Subscription) returns (stream DayBar) {}
+
   rpc SubscribeMarketData(Subscription) returns (Subscription) {}
   rpc UnsubscribeMarketData(Subscription) returns (Subscription) {}
 
@@ -72,9 +77,11 @@ message Instrument {
 }
 
 message Subscription {
-  string symbol = 1;
-  string resolution = 2;
-  string dataType = 3;
+  string symbol = 1; // ex: 'IF1601'
+  string resolution = 2; // ex: 'minute'|'snapshot'
+  string dataType = 3; // ex: 'bar'|'ticker'|'dayBar'|'marketDepth'
+  string startDate = 4; // ex: '2016-07-03'
+  string endDate = 5; // ex: '2016-07-03'
 }
 
 message Subscriptions {

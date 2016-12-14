@@ -38,6 +38,7 @@ export default function createMarketDataStore(config) {
         } else {
           marketDataStore[index] = data;
         }
+        debug('added new MarketData %o', { symbol: data.symbol, resolution: data.resolution, dataType: data.dataType });
         debug('marketDataStore.length %o', marketDataStore.length);
       } catch (error) {
         logError('addMarketData(): %o', error);
@@ -45,15 +46,16 @@ export default function createMarketDataStore(config) {
       }
     };
 
-    for (const dataType of dataFeed.config.dataTypes) {
-      debug('registered event: dataType %o', dataType);
-      dataFeed
-        .on(dataType, (data) => {
-          debug('add new MarketData %o', { symbol: data.symbol, resolution: data.resolution, dataType: data.dataType });
-          addMarketData(data);
-        })
-        .on('error', error => logError('dataFeed.on(error): %o', error))
-        ;
+    for (const dataDescription of dataFeed.config.dataDescriptions) {
+      if (dataDescription.mode === 'live') {
+        dataFeed
+          .on(dataDescription.dataType, (data) => {
+            addMarketData(data);
+          })
+          .on('error', error => logError('dataFeed.on(error): %o', error))
+          ;
+        debug('will store all following data description: %o', dataDescription);
+      }
     }
 
     const getMarketDataStore = () => {
