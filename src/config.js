@@ -27,6 +27,7 @@ export const marketDataConfigs = [
         name: 'iceLive',
         dataTypes: ['ticker', 'bar', 'marketDepth'],
         dataDescriptions: [
+          { dataType: 'marketDepth', resolution: 'snapshot', mode: 'live' },
           { dataType: 'ticker', resolution: 'snapshot', mode: 'live' },
           { dataType: 'bar', resolution: 'minute', mode: 'live' },
         ],
