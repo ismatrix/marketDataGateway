@@ -22,6 +22,8 @@ service SmartwinFuturesMd {
   rpc GetLastDayBars(Subscriptions) returns (LastDayBarsResponse) {}
 
   rpc GetInstruments(GetInstrumentsRequest) returns (Instruments) {}
+
+  rpc GetSubscribableDataDescriptions(Empty) returns (SubscribableDataDescriptionsResponse) {}
 }
 
 message Empty {
@@ -189,4 +191,14 @@ message DayBar {
   double price = 18; // 当前价
   double upperlimit = 19; // 涨停价
   double lowerlimit = 20; // 跌停价
+}
+
+message SubscribableDataDescriptionsResponse {
+  repeated SubscribableDataDescription subscribableDataDescriptions = 1;
+}
+
+message SubscribableDataDescription { // description of supported basic parameters for mdata queries
+  string dataType = 1; // data structure type
+  string resolution = 2; // data time resolution
+  string mode = 3; // the mode (live|past) of market data
 }

@@ -118,13 +118,23 @@ async function getPastMarketDataStream(stream) {
 
     const betterCallID = createBetterCallID(callID, user.userid, stream.request.dataType);
     debug('getPastMarketDataStream(): grpcCall from callID: %o', betterCallID);
+    debug('getPastMarketDataStream(): grpcCall request: %o', stream.request);
 
     const marketData = marketDatas.getMarketData(serviceName);
 
     const theDataFeed = marketData.getDataFeedBySubscription(stream.request);
-    debug('theDataFeed %o', theDataFeed);
 
-    theDataFeed.getDataFeed(stream.request).pipe(stream);
+    theDataFeed.getPastMarketDataStream(stream.request)
+      .on('error', (error) => {
+        logError('getPastMarketDataStream.on(error): callID: %o, %o', betterCallID, error);
+        stream.emit('error', error);
+      })
+      .on('end', () => debug('end of pastMarketData stream with callID: %o', betterCallID))
+      .pipe(stream)
+      .on('error', (error) => {
+        logError('stream.on(error): callID: %o, %o', betterCallID, error);
+      })
+      ;
   } catch (error) {
     logError('getPastMarketDataStream(): callID: %o, %o', callID, error);
     throw error;
@@ -297,6 +307,24 @@ async function getInstruments(call, callback) {
   }
 }
 
+async function getSubscribableDataDescriptions(call, callback) {
+  const callID = createCallID(call);
+  try {
+    const user = await grpcCan(call, 'read', 'getOrders');
+    const betterCallID = createBetterCallID(callID, user.userid);
+
+    debug('getSubscribableDataDescriptions(): grpcCall from callID: %o', betterCallID);
+    const marketData = marketDatas.getMarketData(serviceName);
+
+    const subscribableDataDescriptions = await marketData.getSubscribableDataDescriptions();
+
+    callback(null, { subscribableDataDescriptions });
+  } catch (error) {
+    logError('getSubscribableDataDescriptions(): callID: %o, %o', callID, error);
+    callback(error);
+  }
+}
+
 const smartwinFutures = {
   getMarketDepthStream,
   getBarStream,
@@ -315,7 +343,10 @@ const smartwinFutures = {
   getLastBars,
   getLastTickers,
   getLastDayBars,
+
   getInstruments,
+
+  getSubscribableDataDescriptions,
 };
 
 export default smartwinFutures;

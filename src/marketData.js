@@ -48,6 +48,18 @@ export default function createMarketData(config) {
       }
     };
 
+    const isExistingDataDescription = (dataDescription) => {
+      try {
+        const dataFeedConfig = config.dataFeeds.find(
+          conf => conf.dataDescriptions.find(matchDataDescription(dataDescription)));
+        if (dataFeedConfig) return true;
+        return false;
+      } catch (error) {
+        logError('isExistingDataDescription(): %o', error);
+        throw error;
+      }
+    };
+
     const subscriptionToDataDescription = (sub) => {
       try {
         const dataDescription = {};
@@ -55,6 +67,12 @@ export default function createMarketData(config) {
         dataDescription.resolution = sub.resolution;
         dataDescription.mode = (('startDate' in sub) || ('endDate' in sub)) ? 'past' : 'live';
         debug('dataDescription: %o', dataDescription);
+
+        if (!isExistingDataDescription(dataDescription)) {
+          const flatSubscritpion = reduce(sub, (acc, cur) => acc.concat(cur, ':'), '');
+          throw new Error(`subscription is not valid: ${flatSubscritpion}`);
+        }
+
         return dataDescription;
       } catch (error) {
         logError('subscriptionToDataDescription(): %o', error);
@@ -62,18 +80,26 @@ export default function createMarketData(config) {
       }
     };
 
-    const getDataFeedByDataDescription = (dataDescription) => {
+    const getDataFeedConfigByDataDescription = (dataDescription) => {
       try {
         const dataFeedConfig = config.dataFeeds.find(
           conf => conf.dataDescriptions.find(matchDataDescription(dataDescription)));
 
-        if ('name' in dataFeedConfig) {
-          const theDataFeed = dataFeeds.getDataFeed(dataFeedConfig.name);
-          return theDataFeed;
-        }
+        if (dataFeedConfig) return dataFeedConfig;
 
         const flatDataDescription = reduce(dataDescription, (acc, cur) => acc.concat(cur, ':'), '');
         throw new Error(`dataDescription ${flatDataDescription} not found in dataFeeds config`);
+      } catch (error) {
+        logError('getDataFeedConfigByDataDescription(): %o', error);
+        throw error;
+      }
+    };
+
+    const getDataFeedByDataDescription = (dataDescription) => {
+      try {
+        const dataFeedConfig = getDataFeedConfigByDataDescription(dataDescription);
+        const dataFeed = dataFeeds.getDataFeed(dataFeedConfig.name);
+        return dataFeed;
       } catch (error) {
         logError('getDataFeedByDataDescription(): %o', error);
         throw error;
@@ -174,6 +200,19 @@ export default function createMarketData(config) {
       }
     };
 
+    const getSubscribableDataDescriptions = async () => {
+      try {
+        const dataDescriptions = config.dataFeeds
+          .filter(dataFeedConf => !!dataFeedConf.dataDescriptions)
+          .reduce((acc, cur) => acc.concat(cur.dataDescriptions), [])
+          ;
+        return dataDescriptions;
+      } catch (error) {
+        logError('getSubscribableDataDescriptions(): %o', error);
+        throw error;
+      }
+    };
+
     const marketDataBase = {
       config,
       init,
@@ -185,6 +224,7 @@ export default function createMarketData(config) {
       getDataFeedBySubscription,
       getLastMarketDatas,
       getInstruments,
+      getSubscribableDataDescriptions,
     };
     const marketData = marketDataBase;
     return marketData;
