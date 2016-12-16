@@ -9,6 +9,8 @@ const debug = createDebug('app:marketData');
 const logError = createDebug('app:marketData:error');
 logError.log = console.error.bind(console);
 
+let smartwinDB;
+
 const matchDataDescription = newDesc => desc => (
   desc.mode === newDesc.mode &&
   desc.resolution === newDesc.resolution &&
@@ -17,10 +19,9 @@ const matchDataDescription = newDesc => desc => (
 
 export default function createMarketData(config) {
   try {
-    const smartwinDB = mongodb.getdb().catch(error => logError('createMarketData(): %o', error));
-
     const init = async () => {
       try {
+        smartwinDB = await mongodb.getdb();
         const addDataFeedPromises = config.dataFeeds
           .map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig).catch(error => logError('failed adding dataFeed %o with error: %o', dataFeedConfig.name, error)))
           ;
