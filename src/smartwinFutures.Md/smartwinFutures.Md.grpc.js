@@ -50,7 +50,10 @@ async function getMarketDataStream(stream, eventName) {
 
     theDataFeed
       .on(eventName, listener)
-      .on('error', error => logError('theDataFeed.on(error): callID: %o, %o', betterCallID, error))
+      .on('error', (error) => {
+        logError('theDataFeed.on(error): callID: %o, %o', betterCallID, error);
+        stream.emit('error', error);
+      })
       ;
 
     stream

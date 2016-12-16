@@ -14,7 +14,7 @@ const matchDataFeed = newConfig => elem => (
   elem.config.name === newConfig.name
 );
 
-function addDataFeed(config) {
+async function addDataFeed(config) {
   try {
     debug('addDataFeed() config %o', config);
     const existingDataFeed = dataFeedsArr.find(matchDataFeed(config));
@@ -22,6 +22,8 @@ function addDataFeed(config) {
     if (existingDataFeed !== undefined) return;
 
     const newDataFeed = createDataFeed(config);
+    if ('init' in newDataFeed) await newDataFeed.init();
+    if ('connect' in newDataFeed) await newDataFeed.connect();
 
     mdStores.addAndGetMdStore({ dataFeed: newDataFeed });
 
@@ -40,6 +42,16 @@ function getDataFeed(dataFeedName) {
     throw new Error('dataFeed not found');
   } catch (error) {
     logError('getDataFeed(): %o', error);
+    throw error;
+  }
+}
+
+function getDataFeedsByNames(dataFeedNames) {
+  try {
+    const theDataFeeds = dataFeedsArr.filter(df => dataFeedNames.includes(df.config.name));
+    return theDataFeeds;
+  } catch (error) {
+    logError('getDataFeedsByNames(): %o', error);
     throw error;
   }
 }
@@ -135,6 +147,7 @@ const clearGlobalSubsDiff = async () => {
 const dataFeeds = {
   addDataFeed,
   getDataFeed,
+  getDataFeedsByNames,
   getSubscriptions,
   subscribe,
   unsubscribe,

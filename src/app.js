@@ -6,9 +6,7 @@ import program from 'commander';
 import pmx from 'pmx';
 import { upperFirst } from 'lodash';
 import marketDataGatewayGrpc from './marketDataGateway.grpc';
-import mongodb from './mongodb';
 import {
-  mongodbUrl,
   marketDataConfigs,
   grpcConfig,
 } from './config';
@@ -32,10 +30,13 @@ pmx.init({
 
 async function init() {
   try {
-    await mongodb.connect(mongodbUrl);
-    await Promise.all([].concat(
-      marketDataConfigs.map(conf => marketDatas.addMarketData(conf)),
-    ));
+    const initMarketDatasReport = await Promise.all(marketDataConfigs.map(
+      conf => marketDatas.addMarketData(conf).catch((error) => {
+        logError('init1(): %o', error);
+        return `failed adding ${conf.serviceName}`;
+      })),
+    );
+    debug('initMarketDatasReport %o', initMarketDatasReport);
   } catch (error) {
     logError('init(): %o', error);
   }

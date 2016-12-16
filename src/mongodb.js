@@ -13,14 +13,21 @@ const MongoClient = mongodb.MongoClient;
 let connectionInstance;
 let gurl;
 
+event.on('error', error => logError('event.on(error): %o', error));
+
 async function connect(url) {
   gurl = url;
   try {
-    connectionInstance = await MongoClient.connect(gurl);
+    connectionInstance = await MongoClient.connect(gurl, {
+      reconnectTries: Number.MAX_VALUE,
+      reconnectInterval: 1000,
+      db: { bufferMaxEntries: 0 },
+    });
     event.emit('connect');
-  } catch (err) {
-    debug('Mongodb connect Err: %s', err);
+  } catch (error) {
+    debug('connect(): %o', error);
     event.emit('error', new Error('Mongodb connection error'));
+    throw error;
   }
 }
 

@@ -17,31 +17,51 @@ const matchDataDescription = newDesc => desc => (
 
 export default function createMarketData(config) {
   try {
-    const smartwinDB = mongodb.getdb();
+    const smartwinDB = mongodb.getdb().catch(error => logError('createMarketData(): %o', error));
 
     const init = async () => {
       try {
-        const connectPromises = config.dataFeeds
-          .map(dataFeedConfig => dataFeeds.getDataFeed(dataFeedConfig.name))
-          .map((dataFeed) => {
-            if ('connect' in dataFeed) return dataFeed.connect();
-            return 'no connect function';
-          })
+        const addDataFeedPromises = config.dataFeeds
+          .map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig).catch(error => logError('failed adding dataFeed %o with error: %o', dataFeedConfig.name, error)))
           ;
-        debug('connectPromises %o', connectPromises);
-        await Promise.all(connectPromises);
+
+        debug('connectPromises %o', addDataFeedPromises);
+        const initReport = await Promise.all(addDataFeedPromises);
+        return initReport;
       } catch (error) {
         logError('init(): %o', error);
         throw error;
       }
     };
 
+    const getOwnDataFeeds = () => {
+      try {
+        const dataFeedNames = config.dataFeeds.map(conf => conf.name);
+        const ownDataFeeds = dataFeeds.getDataFeedsByNames(dataFeedNames);
+        return ownDataFeeds;
+      } catch (error) {
+        logError('getOwnDataFeeds(): %o', error);
+        throw error;
+      }
+    };
+
+    const getOwnDataFeedConfigs = () => {
+      try {
+        const ownDataFeedConfigs = getOwnDataFeeds().map(conf => conf.config);
+        return ownDataFeedConfigs;
+      } catch (error) {
+        logError('getOwnDataFeedConfigs(): %o', error);
+        throw error;
+      }
+    };
+
     const dataTypeToDataFeedName = (dataType) => {
       try {
-        for (const dataFeed of config.dataFeeds) {
-          if (dataFeed.dataTypes.includes(dataType)) return dataFeed.name;
+        const dataFeedConfigs = getOwnDataFeeds().map(conf => conf.config);
+        for (const dataFeedConfig of dataFeedConfigs) {
+          if (dataFeedConfig.dataTypes.includes(dataType)) return dataFeedConfig.name;
         }
-        throw new Error('dataType not found in dataFeeds config');
+        throw new Error('dataType not found in own dataFeed configs');
       } catch (error) {
         logError('dataTypeToDataFeedName(): %o', error);
         throw error;
@@ -50,7 +70,7 @@ export default function createMarketData(config) {
 
     const isExistingDataDescription = (dataDescription) => {
       try {
-        const dataFeedConfig = config.dataFeeds.find(
+        const dataFeedConfig = getOwnDataFeedConfigs().find(
           conf => conf.dataDescriptions.find(matchDataDescription(dataDescription)));
         if (dataFeedConfig) return true;
         return false;
@@ -68,11 +88,6 @@ export default function createMarketData(config) {
         dataDescription.mode = (('startDate' in sub) || ('endDate' in sub)) ? 'past' : 'live';
         debug('dataDescription: %o', dataDescription);
 
-        if (!isExistingDataDescription(dataDescription)) {
-          const flatSubscritpion = reduce(sub, (acc, cur) => acc.concat(cur, ':'), '');
-          throw new Error(`subscription is not valid: ${flatSubscritpion}`);
-        }
-
         return dataDescription;
       } catch (error) {
         logError('subscriptionToDataDescription(): %o', error);
@@ -80,9 +95,20 @@ export default function createMarketData(config) {
       }
     };
 
+    const isValidSubscription = (sub) => {
+      try {
+        const dataDescription = subscriptionToDataDescription(sub);
+        if (!isExistingDataDescription(dataDescription)) return false;
+        return true;
+      } catch (error) {
+        logError('isValidSubscription(): %o', error);
+        throw error;
+      }
+    };
+
     const getDataFeedConfigByDataDescription = (dataDescription) => {
       try {
-        const dataFeedConfig = config.dataFeeds.find(
+        const dataFeedConfig = getOwnDataFeedConfigs().find(
           conf => conf.dataDescriptions.find(matchDataDescription(dataDescription)));
 
         if (dataFeedConfig) return dataFeedConfig;
@@ -108,6 +134,10 @@ export default function createMarketData(config) {
 
     const getDataFeedBySubscription = (sub) => {
       try {
+        if (!isValidSubscription(sub)) {
+          const flatSubscritpion = reduce(sub, (acc, cur) => acc.concat(cur, ':'), '');
+          throw new Error(`subscription is not valid: ${flatSubscritpion}`);
+        }
         const dataDescription = subscriptionToDataDescription(sub);
         const dataFeed = getDataFeedByDataDescription(dataDescription);
         return dataFeed;
@@ -149,7 +179,7 @@ export default function createMarketData(config) {
 
     const getDataFeedByDataType = (dataType) => {
       try {
-        const dataFeedConfig = config.dataFeeds.find(
+        const dataFeedConfig = getOwnDataFeedConfigs().find(
           dfConfig => dfConfig.dataTypes.includes(dataType));
 
         if ('name' in dataFeedConfig) {
@@ -202,7 +232,7 @@ export default function createMarketData(config) {
 
     const getSubscribableDataDescriptions = async () => {
       try {
-        const dataDescriptions = config.dataFeeds
+        const dataDescriptions = getOwnDataFeedConfigs()
           .filter(dataFeedConf => !!dataFeedConf.dataDescriptions)
           .reduce((acc, cur) => acc.concat(cur.dataDescriptions), [])
           ;
