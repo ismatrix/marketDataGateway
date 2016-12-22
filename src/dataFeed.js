@@ -28,7 +28,38 @@ export default function createDataFeed(config) {
         throw new Error('Missing dataFeed provider parameter');
     }
 
-    return Object.assign(dataFeed, { config });
+    const getLiveDataTypeNames = () => {
+      try {
+        const liveDataTypeNames = config.dataDescriptions
+          .filter(elem => elem.mode === 'live')
+          .map(elem => elem.dataType)
+          ;
+
+        return liveDataTypeNames;
+      } catch (error) {
+        logError('getLiveDataTypeNames(): %o', error);
+        throw error;
+      }
+    };
+
+    const mdToSubID = (md) => {
+      try {
+        const subID = `${name}:${md.dataType}:${md.resolution}:${md.symbol}`;
+        return subID;
+      } catch (error) {
+        logError('mdToSubID(): %o', error);
+        throw error;
+      }
+    };
+
+    const dataFeedBase = {
+      config,
+      getLiveDataTypeNames,
+      mdToSubID,
+    };
+
+
+    return Object.assign(dataFeed, dataFeedBase);
   } catch (error) {
     logError('createDataFeed(): %o', error);
     throw error;

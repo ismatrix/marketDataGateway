@@ -24,6 +24,7 @@ service SmartwinFuturesMd {
   rpc GetInstruments(GetInstrumentsRequest) returns (Instruments) {}
 
   rpc GetSubscribableDataDescriptions(Empty) returns (SubscribableDataDescriptionsResponse) {}
+  rpc GetMySubscriptions(Empty) returns (Subscriptions) {}
 }
 
 message Empty {

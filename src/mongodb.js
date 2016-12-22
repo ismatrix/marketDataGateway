@@ -11,14 +11,12 @@ const event = new events.EventEmitter();
 const MongoClient = mongodb.MongoClient;
 
 let connectionInstance;
-let gurl;
 
 event.on('error', error => logError('event.on(error): %o', error));
 
 async function connect(url) {
-  gurl = url;
   try {
-    connectionInstance = await MongoClient.connect(gurl, {
+    connectionInstance = await MongoClient.connect(url, {
       reconnectTries: Number.MAX_VALUE,
       reconnectInterval: 1000,
       db: { bufferMaxEntries: 0 },
@@ -32,10 +30,10 @@ async function connect(url) {
 }
 
 function getdb() {
-  if (connectionInstance) {
-    return connectionInstance;
-  }
   return new Promise((resolve, reject) => {
+    if (connectionInstance) {
+      resolve(connectionInstance);
+    }
     event.on('connect', () => {
       debug('connected on promise resolution to existing connectionInstance');
       resolve(connectionInstance);
