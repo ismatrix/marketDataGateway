@@ -8,7 +8,7 @@ npm install
 
 ## Dev
 ```
-DEBUG_FD=1 DEBUG=*,-babel DEBUG_COLORS=true pm2 start src/index.js --watch --no-autorestart --log-date-format="MM-DD HH:mm:ss"  --name marketDataGateway -- --credentials-name server
+DEBUG_FD=1 DEBUG=*,-babel DEBUG_COLORS=true pm2 start src/index.js --watch --no-autorestart --log-date-format="MM-DD HH:mm:ss"  --name marketDataGateway -- --credentials-name localhost
 pm2 logs marketDataGateway
 ```
 
