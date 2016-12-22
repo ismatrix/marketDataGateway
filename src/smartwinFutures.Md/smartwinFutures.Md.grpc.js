@@ -19,6 +19,7 @@ const SIDS_PREFIX = 'sids';
 const GLOBAL_SUBS = 'subs:global';
 const MD_ROOM = 'md';
 const GLOBALLY_UNUSED_SUBID = 'mdSubID:globallyUnused';
+const LAST_MD = 'subid.lastMd';
 
 redis.del(GLOBAL_SUBS);
 redisSub.subscribe(GLOBALLY_UNUSED_SUBID);
@@ -91,7 +92,7 @@ async function removeSessionidFromAllSubIDsByDataType(sessionid, dataType) {
   }
 }
 
-async function getSessionidSubIDs(sessionid) {
+async function getSubIDsOfSessionid(sessionid) {
   try {
     const sidsKeys = await redis.keysAsync(`${SIDS_PREFIX}:*`);
     debug('sidsKeys: %o', sidsKeys);
@@ -109,7 +110,7 @@ async function getSessionidSubIDs(sessionid) {
 
     return sessionidSubIDs;
   } catch (error) {
-    logError('getSessionidSubIDs(): %o', error);
+    logError('getSubIDsOfSessionid(): %o', error);
     throw error;
   }
 }
@@ -146,20 +147,18 @@ function subscriptionToSubID(dataFeedName, sub) {
 
 redisSub.on('message', async (room, message) => {
   try {
-    debug('room %o received %o', room, message);
     const roomType = room.substring(0, room.indexOf(':'));
 
     if (roomType === MD_ROOM) {
       const subID = room.substring(room.indexOf(':') + 1);
-      const subscribersUUIDS = await redis.smembersAsync(`${SIDS_PREFIX}:${subID}`);
+      const subscribersSessionids = await redis.smembersAsync([SIDS_PREFIX, subID].join(':'));
 
-      debug('members of room %o: %o', subID, subscribersUUIDS);
       const subscription = subIDToSubscription(subID);
 
       for (const stream of grpcClientStreams) {
         if (
-          subscribersUUIDS.includes(stream.sessionid)
-          && stream.dataType === subscription.dataType
+          stream.dataType === subscription.dataType
+          && subscribersSessionids.includes(stream.sessionid)
         ) stream.write(JSON.parse(message));
       }
     } else if (room === GLOBALLY_UNUSED_SUBID) {
@@ -271,22 +270,17 @@ async function subscribeMarketData(call, callback) {
     const theDataFeed = marketData.getDataFeedBySubscription(newSub);
 
     const grpcClientStreamsArr = Array.from(grpcClientStreams);
-
     const matchingStream = grpcClientStreamsArr.find(
       (stream) => {
         if (stream.dataType === newSub.dataType && stream.sessionid === sessionid) return true;
         return false;
       });
-
     if (!matchingStream) throw new Error(`Before calling subscribeMarketData(), need to first open a stream of related type "${newSub.dataType}"`);
 
     const subID = subscriptionToSubID(theDataFeed.config.name, newSub);
 
     const isNewSubInGlobal = await redis.sismemberAsync(GLOBAL_SUBS, subID);
-    if (!isNewSubInGlobal) {
-      debug('added %o to "subs:global"', subID);
-      await theDataFeed.subscribe(newSub);
-    }
+    if (!isNewSubInGlobal) await theDataFeed.subscribe(newSub);
 
     await redis.saddAsync(GLOBAL_SUBS, subID);
     await redisSub.subscribeAsync([MD_ROOM, subID].join(':'));
@@ -377,7 +371,7 @@ async function getMarketDataStream(stream) {
 
     grpcClientStreams.add(stream);
 
-    const streamExistingSubIDs = await getSessionidSubIDs(stream.sessionid);
+    const streamExistingSubIDs = await getSubIDsOfSessionid(stream.sessionid);
     const globalSubIDs = await redis.smembersAsync(GLOBAL_SUBS);
     const needSubscribeSubIDs = difference(streamExistingSubIDs, globalSubIDs);
     debug('existing subIDs that need to be subscribed: %o', needSubscribeSubIDs);
@@ -444,21 +438,48 @@ async function getLastMarketDatas(call, callback) {
   const callID = createCallID(call);
   try {
     const dataType = call.request.dataType;
+    const subs = call.request.subscriptions;
     const methodName = `getLast${upperFirst(dataType)}s`;
     const user = await grpcCan(call, 'read', 'getOrders');
     const betterCallID = createBetterCallID(callID, user.userid);
+    debug('%o(): grpcCall from callID: %o', methodName, betterCallID);
 
-    const subs = call.request.subscriptions.filter(sub => sub.dataType === dataType);
+    for (const sub of subs) {
+      if (sub.dataType !== dataType) throw new Error(`cannot ask for dataType: "${sub.dataType}" with method: "${methodName}"`);
+    }
 
-    const subsSymbols = subs.map(sub => sub.symbol);
-    debug('%o(): %o, grpcCall from callID: %o', methodName, subsSymbols, betterCallID);
-    const sessionid = call.metadata.get('sessionid')[0];
     const marketData = marketDatas.getMarketData(serviceName);
 
-    const lastMarketDatas = {};
-    lastMarketDatas[`${dataType}s`] = marketData.getLastMarketDatas(sessionid, subs, dataType);
+    const subIDs = subs.map((sub) => {
+      const dataFeedName = marketData.getDataFeedBySubscription(sub).config.name;
+      return subscriptionToSubID(dataFeedName, sub);
+    });
+    debug('subIDs %o', subIDs);
 
-    callback(null, lastMarketDatas);
+    const lastRedisMarketDatas = await redis.multi(subIDs.map(subID => (['GET', [LAST_MD, subID].join(':')]))).execAsync();
+    const lastMarketDatas = lastRedisMarketDatas.filter(md => !!md).map(md => JSON.parse(md));
+    debug('lastMarketDatas %o', lastMarketDatas);
+
+    const lastMarketDatasResponse = {};
+    lastMarketDatasResponse[`${dataType}s`] = lastMarketDatas;
+
+    callback(null, lastMarketDatasResponse);
+
+    const globalSubIDs = await redis.smembersAsync(GLOBAL_SUBS);
+    const needSubscribeSubIDs = difference(subIDs, globalSubIDs);
+    debug('existing subIDs that need to be subscribed: %o', needSubscribeSubIDs);
+
+    needSubscribeSubIDs.forEach(async (newSubID) => {
+      try {
+        const newSub = subIDToSubscription(newSubID);
+        const [dataFeedName] = newSubID.split(':');
+        const theDataFeed = dataFeeds.getDataFeed(dataFeedName);
+        await theDataFeed.subscribe(newSub);
+        await redis.saddAsync(GLOBAL_SUBS, newSubID);
+      } catch (error) {
+        logError('needSubscribeSubIDs.forEach(): %o', error);
+      }
+    });
   } catch (error) {
     logError('getLastMarketDatas(): callID: %o, %o', callID, error);
     callback(error);
@@ -551,10 +572,9 @@ async function getMySubscriptions(call, callback) {
 
     debug('getMySubscriptions(): grpcCall from callID: %o', betterCallID);
 
-    const subIDs = await getSessionidSubIDs(sessionid);
-    debug('subIDs %o', subIDs);
+    const subIDs = await getSubIDsOfSessionid(sessionid);
+
     const subscriptions = subIDs.map(subID => subIDToSubscription(subID));
-    debug('subscriptions %o', subscriptions);
 
     callback(null, { subscriptions });
   } catch (error) {

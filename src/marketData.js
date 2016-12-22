@@ -2,8 +2,6 @@ import createDebug from 'debug';
 import { reduce } from 'lodash';
 import mongodb from './mongodb';
 import dataFeeds from './dataFeeds';
-import subStores from './subscriptionStores';
-import mdStores from './marketDataStores';
 
 const debug = createDebug('app:marketData');
 const logError = createDebug('app:marketData:error');
@@ -148,36 +146,6 @@ export default function createMarketData(config) {
       }
     };
 
-    const subscribeMarketData = async (sessionid, newSub) => {
-      try {
-        const theDataFeedName = dataTypeToDataFeedName(newSub.dataType);
-        const subscription = await dataFeeds.subscribe(theDataFeedName, newSub);
-        // debug('global subscribeResult %o', subscription);
-
-        const theSessionSubs = subStores.addAndGetSubStore({ name: sessionid });
-        theSessionSubs.addSub(newSub, theDataFeedName);
-
-        return subscription;
-      } catch (error) {
-        logError('subscribeMarketData(): %o', error);
-        throw error;
-      }
-    };
-
-    const unsubscribeMarketData = async (sessionid, subToRemove) => {
-      try {
-        const theDataFeedName = dataTypeToDataFeedName(subToRemove.dataType);
-
-        const theSessionSubs = subStores.addAndGetSubStore({ name: sessionid });
-        theSessionSubs.removeSub(subToRemove, theDataFeedName);
-
-        dataFeeds.unsubscribe(theDataFeedName, subToRemove);
-      } catch (error) {
-        logError('unsubscribeMarketData(): %o', error);
-        throw error;
-      }
-    };
-
     const getDataFeedByDataType = (dataType) => {
       try {
         const dataFeedConfig = getOwnDataFeedConfigs().find(
@@ -195,29 +163,12 @@ export default function createMarketData(config) {
       }
     };
 
-    const getLastMarketDatas = (sessionid, subs, dataType) => {
-      try {
-        subs.map(sub => subscribeMarketData(sessionid, sub));
-
-        const mdStore = mdStores.getMdStoreByName(dataTypeToDataFeedName(dataType));
-        const tickers = subs
-          .map(sub => mdStore.getLastMarketData(sub))
-          .filter(md => (!!md))
-          ;
-        return tickers;
-      } catch (error) {
-        logError('getLastMarketDatas(): %o', error);
-        throw error;
-      }
-    };
-
     const getInstruments = async (symbols) => {
       try {
         const INSTRUMENT = smartwinDB.collection('INSTRUMENT');
         const query = { instrumentid: { $in: symbols } };
         const projection = { _id: 0 };
         const instruments = await INSTRUMENT.find(query, projection).toArray();
-        debug('instruments %o', instruments.map(({ instrumentid, volumemultiple }) => ({ instrumentid, volumemultiple })));
 
         instruments.map((ins) => {
           ins.updatedate = ins.updatedate.toISOString();
@@ -248,12 +199,9 @@ export default function createMarketData(config) {
       config,
       init,
       dataTypeToDataFeedName,
-      subscribeMarketData,
-      unsubscribeMarketData,
       getDataFeedByDataType,
       getDataFeedByDataDescription,
       getDataFeedBySubscription,
-      getLastMarketDatas,
       getInstruments,
       getSubscribableDataDescriptions,
     };

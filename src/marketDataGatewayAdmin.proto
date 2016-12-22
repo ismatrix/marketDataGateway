@@ -4,7 +4,6 @@ package marketDataGatewayAdmin;
 
 service MarketDataGatewayAdmin {
   rpc GetMarketDatasConfigs(Empty) returns (MarketDatasConfigs) {}
-  rpc GetSubscriptionsStores(Empty) returns (SubscriptionsStores) {}
 }
 
 message Empty {
@@ -28,24 +27,4 @@ message DataFeedConfig {
 message ServerConfig {
   string ip = 1;
   string port = 2;
-}
-
-message SubscriptionsStores {
-  repeated SubscriptionsStore subscriptionsStores = 1;
-}
-
-message SubscriptionsStore {
-  string storeName = 1;
-  repeated DataFeedSubscriptions dataFeedsSubscriptions = 2;
-}
-
-message DataFeedSubscriptions {
-  string dataFeedName = 1;
-  repeated Subscription subscriptions = 2;
-}
-
-message Subscription {
-  string symbol = 1;
-  string resolution = 2;
-  string dataType = 3;
 }
