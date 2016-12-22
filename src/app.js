@@ -53,7 +53,7 @@ async function main() {
 
     const marketDataProto = grpc.load(__dirname.concat('/marketDataGateway.proto'));
 
-    const credentialsName = program.credentialsName || 'server';
+    const credentialsName = program.credentialsName || 'localhost';
     const sslServerCrtPath = path.join(__dirname, `../crt/${credentialsName}.crt`);
     const sslServerKeyPath = path.join(__dirname, `../crt/${credentialsName}.key`);
     const sslServerCrt = fs.readFileSync(sslServerCrtPath);
