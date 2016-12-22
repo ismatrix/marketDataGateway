@@ -33,7 +33,7 @@ export const marketDataConfigs = [
         ],
         server: {
           ip: '120.76.98.94',
-          port: '4502',
+          port: '10001',
         },
       },
       {
