@@ -36,6 +36,7 @@ function addPublisherListenerToDataFeed(dataFeed) {
               redis.multi()
                 .publish([MD_ROOM, subID].join(':'), JSON.stringify(data))
                 .set([LAST_MD, subID].join(':'), JSON.stringify(data))
+                .execAsync()
                 ;
             } catch (error) {
               logError('dataFeed.on(dataType): %o', error);

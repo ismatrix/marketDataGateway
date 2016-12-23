@@ -269,7 +269,7 @@ async function subscribeMarketData(call, callback) {
 
     const theDataFeed = marketData.getDataFeedBySubscription(newSub);
 
-    const grpcClientStreamsArr = Array.from(grpcClientStreams);
+    // const grpcClientStreamsArr = Array.from(grpcClientStreams);
     // const matchingStream = grpcClientStreamsArr.find(
     //   (stream) => {
     //     if (stream.dataType === newSub.dataType && stream.sessionid === sessionid) return true;
@@ -283,7 +283,8 @@ async function subscribeMarketData(call, callback) {
     if (!isNewSubInGlobal) await theDataFeed.subscribe(newSub);
 
     await redis.saddAsync(GLOBAL_SUBS, subID);
-    await redisSub.subscribeAsync([MD_ROOM, subID].join(':'));
+    const redisSubscribed = await redisSub.subscribeAsync([MD_ROOM, subID].join(':'));
+    debug('redisSubscribed %o', redisSubscribed);
 
     const isNewSessionidInSubID = await redis.saddAsync(`${SIDS_PREFIX}:${subID}`, sessionid);
     if (isNewSessionidInSubID) debug('added %o to %o', sessionid, `${SIDS_PREFIX}:${subID}`);
@@ -313,8 +314,8 @@ async function unsubscribeMarketData(call, callback) {
     const isRemoved = await redis.sremAsync(`${SIDS_PREFIX}:${subID}`, sessionid);
     if (isRemoved) debug('removed %o from subs %o', betterCallID, subID);
 
-    const needRedisUnsubscribeSubIDs = await getLocallyEmptySubIDs([subID]);
-    needRedisUnsubscribeSubIDs.forEach(elem => redisSub.unsubscribe([MD_ROOM, elem].join(':')));
+    // const needRedisUnsubscribeSubIDs = await getLocallyEmptySubIDs([subID]);
+    // needRedisUnsubscribeSubIDs.forEach(elem => redisSub.unsubscribe([MD_ROOM, elem].join(':')));
 
     // const globallyNotSubscribedSubIDs = await getGloballyNotSubscribedSubIDs();
     //
@@ -383,7 +384,7 @@ async function getMarketDataStream(stream) {
         const theDataFeed = marketData.getDataFeedBySubscription(newSub);
         await theDataFeed.subscribe(newSub);
         await redis.saddAsync(GLOBAL_SUBS, newSubID);
-        await redisSub.subscribeAsync([MD_ROOM, newSubID].join(':'));
+        const redisSubscribed = await redisSub.subscribeAsync([MD_ROOM, newSubID].join(':'));
       } catch (error) {
         logError('needSubscribeSubIDs.forEach(): %o', error);
       }
