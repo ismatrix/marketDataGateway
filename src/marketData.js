@@ -1,6 +1,6 @@
 import createDebug from 'debug';
 import { reduce } from 'lodash';
-import mongodb from './mongodb';
+import mongodb from 'sw-mongodb';
 import dataFeeds from './dataFeeds';
 
 const debug = createDebug('app:marketData');
@@ -19,7 +19,7 @@ export default function createMarketData(config) {
   try {
     const init = async () => {
       try {
-        smartwinDB = await mongodb.getdb();
+        smartwinDB = await mongodb.getDB();
         const addDataFeedPromises = config.dataFeeds
           .map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig).catch(error => logError('failed adding dataFeed %o with error: %o', dataFeedConfig.name, error)))
           ;
