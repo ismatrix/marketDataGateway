@@ -270,12 +270,12 @@ async function subscribeMarketData(call, callback) {
     const theDataFeed = marketData.getDataFeedBySubscription(newSub);
 
     const grpcClientStreamsArr = Array.from(grpcClientStreams);
-    const matchingStream = grpcClientStreamsArr.find(
-      (stream) => {
-        if (stream.dataType === newSub.dataType && stream.sessionid === sessionid) return true;
-        return false;
-      });
-    if (!matchingStream) throw new Error(`Before calling subscribeMarketData(), need to first open a stream of related type "${newSub.dataType}"`);
+    // const matchingStream = grpcClientStreamsArr.find(
+    //   (stream) => {
+    //     if (stream.dataType === newSub.dataType && stream.sessionid === sessionid) return true;
+    //     return false;
+    //   });
+    // if (!matchingStream) throw new Error(`Before calling subscribeMarketData(), need to first open a stream of related type "${newSub.dataType}"`);
 
     const subID = subscriptionToSubID(theDataFeed.config.name, newSub);
 
