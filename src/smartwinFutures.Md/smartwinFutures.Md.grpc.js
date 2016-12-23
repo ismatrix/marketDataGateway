@@ -316,11 +316,11 @@ async function unsubscribeMarketData(call, callback) {
     const needRedisUnsubscribeSubIDs = await getLocallyEmptySubIDs([subID]);
     needRedisUnsubscribeSubIDs.forEach(elem => redisSub.unsubscribe([MD_ROOM, elem].join(':')));
 
-    const globallyNotSubscribedSubIDs = await getGloballyNotSubscribedSubIDs();
-
-    for (const subIDToGloballyRemove of globallyNotSubscribedSubIDs) {
-      redis.publish(GLOBALLY_UNUSED_SUBID, subIDToGloballyRemove);
-    }
+    // const globallyNotSubscribedSubIDs = await getGloballyNotSubscribedSubIDs();
+    //
+    // for (const subIDToGloballyRemove of globallyNotSubscribedSubIDs) {
+    //   redis.publish(GLOBALLY_UNUSED_SUBID, subIDToGloballyRemove);
+    // }
 
     callback(null, subToRemove);
   } catch (error) {
@@ -350,15 +350,15 @@ async function getMarketDataStream(stream) {
         try {
           logError('stream.on(cancelled): callID: %o', betterCallID);
           grpcClientStreams.delete(stream);
-          const leftSubIDs = await
-            removeSessionidFromAllSubIDsByDataType(stream.sessionid, stream.dataType);
-          const needRedisUnsubscribeSubIDs = await getLocallyEmptySubIDs(leftSubIDs);
-          needRedisUnsubscribeSubIDs.forEach(elem => redisSub.unsubscribe([MD_ROOM, elem].join(':')));
-
-          const globallyNotSubscribedSubIDs = await getGloballyNotSubscribedSubIDs();
-          for (const subIDToGloballyRemove of globallyNotSubscribedSubIDs) {
-            redis.publish(GLOBALLY_UNUSED_SUBID, subIDToGloballyRemove);
-          }
+          // const leftSubIDs = await
+          //   removeSessionidFromAllSubIDsByDataType(stream.sessionid, stream.dataType);
+          // const needRedisUnsubscribeSubIDs = await getLocallyEmptySubIDs(leftSubIDs);
+          // needRedisUnsubscribeSubIDs.forEach(elem => redisSub.unsubscribe([MD_ROOM, elem].join(':')));
+          //
+          // const globallyNotSubscribedSubIDs = await getGloballyNotSubscribedSubIDs();
+          // for (const subIDToGloballyRemove of globallyNotSubscribedSubIDs) {
+          //   redis.publish(GLOBALLY_UNUSED_SUBID, subIDToGloballyRemove);
+          // }
         } catch (error) {
           logError('stream.on(cancelled): %o', error);
         }
