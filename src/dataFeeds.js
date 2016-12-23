@@ -8,7 +8,7 @@ const logError = createDebug('app:dataFeeds:error');
 logError.log = console.error.bind(console);
 bluebird.promisifyAll(createRedis.RedisClient.prototype);
 bluebird.promisifyAll(createRedis.Multi.prototype);
-const redis = createRedis.createClient();
+const redis = createRedis.createClient({ port: 6379 });
 
 const dataFeedsArr = [];
 const MD_ROOM = 'md';

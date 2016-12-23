@@ -11,7 +11,7 @@ const logError = createDebug('app:smartwinFuturesMd.grpc:error');
 logError.log = console.error.bind(console);
 bluebird.promisifyAll(createRedis.RedisClient.prototype);
 bluebird.promisifyAll(createRedis.Multi.prototype);
-const redis = createRedis.createClient();
+const redis = createRedis.createClient({ port: 6379 });
 const redisSub = redis.duplicate();
 
 const serviceName = 'smartwinFuturesMd';
@@ -475,6 +475,7 @@ async function getLastMarketDatas(call, callback) {
         const [dataFeedName] = newSubID.split(':');
         const theDataFeed = dataFeeds.getDataFeed(dataFeedName);
         await theDataFeed.subscribe(newSub);
+        debug('getLastMarketDatas(): subscribed to %o', newSubID);
         await redis.saddAsync(GLOBAL_SUBS, newSubID);
       } catch (error) {
         logError('needSubscribeSubIDs.forEach(): %o', error);
