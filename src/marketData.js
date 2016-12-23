@@ -85,7 +85,7 @@ export default function createMarketData(config) {
         dataDescription.dataType = sub.dataType;
         dataDescription.resolution = sub.resolution;
         dataDescription.mode = (sub.startDate || sub.endDate) ? 'past' : 'live';
-        debug('dataDescription: %o', dataDescription);
+        // debug('dataDescription: %o', dataDescription);
 
         return dataDescription;
       } catch (error) {
