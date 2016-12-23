@@ -5,7 +5,7 @@ import grpc from 'grpc';
 import program from 'commander';
 import pmx from 'pmx';
 import { upperFirst } from 'lodash';
-import mongodb from './mongodb';
+import mongodb from 'sw-mongodb';
 import marketDataGatewayGrpc from './marketDataGateway.grpc';
 import {
   marketDataConfigs,
