@@ -459,7 +459,7 @@ async function getLastMarketDatas(call, callback) {
 
     const lastRedisMarketDatas = await redis.multi(subIDs.map(subID => (['GET', [LAST_MD, subID].join(':')]))).execAsync();
     const lastMarketDatas = lastRedisMarketDatas.filter(md => !!md).map(md => JSON.parse(md));
-    debug('lastMarketDatas %o', lastMarketDatas);
+    debug('lastMarketDatas.length %o', lastMarketDatas.length);
 
     const lastMarketDatasResponse = {};
     lastMarketDatasResponse[`${dataType}s`] = lastMarketDatas;
@@ -468,7 +468,7 @@ async function getLastMarketDatas(call, callback) {
 
     const globalSubIDs = await redis.smembersAsync(GLOBAL_SUBS);
     const needSubscribeSubIDs = difference(subIDs, globalSubIDs);
-    debug('existing subIDs that need to be subscribed: %o', needSubscribeSubIDs);
+    if (needSubscribeSubIDs.length > 0) debug('existing subIDs that need to be subscribed: %o', needSubscribeSubIDs);
 
     needSubscribeSubIDs.forEach(async (newSubID) => {
       try {
