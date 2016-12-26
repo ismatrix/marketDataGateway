@@ -11,8 +11,8 @@ bluebird.promisifyAll(createRedis.Multi.prototype);
 const redis = createRedis.createClient({ port: 6379 });
 
 const dataFeedsArr = [];
-const MD_ROOM = 'md';
-const LAST_MD = 'subid.lastMd';
+const SUBID_MD = 'subID|md';
+const SUBID_LASTMD = 'subID|lastMd';
 
 const matchDataFeed = newConfig => elem => (
   elem.config.name === newConfig.name
@@ -34,8 +34,8 @@ function addPublisherListenerToDataFeed(dataFeed) {
             try {
               const subID = dataFeed.mdToSubID(data);
               redis.multi()
-                .publish([MD_ROOM, subID].join(':'), JSON.stringify(data))
-                .set([LAST_MD, subID].join(':'), JSON.stringify(data))
+                .publish([SUBID_MD, subID].join(':'), JSON.stringify(data))
+                .set([SUBID_LASTMD, subID].join(':'), JSON.stringify(data))
                 .execAsync()
                 ;
             } catch (error) {

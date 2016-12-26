@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import grpc from 'grpc';
 import program from 'commander';
-import pmx from 'pmx';
 import { upperFirst } from 'lodash';
 import mongodb from 'sw-mongodb';
 import marketDataGatewayGrpc from './marketDataGateway.grpc';
@@ -24,11 +23,6 @@ const debug = createDebug(`app:main:${grpcUrl}`);
 const logError = createDebug(`app:main:${grpcUrl}:error`);
 logError.log = console.error.bind(console);
 process.on('uncaughtException', error => logError('process.on(uncaughtException): %o', error));
-
-pmx.init({
-  network: true,
-  ports: true,
-});
 
 async function init() {
   try {
