@@ -1,18 +1,12 @@
 import createDebug from 'debug';
-import bluebird from 'bluebird';
-import createRedis from 'redis';
 import createDataFeed from './dataFeed';
+import { redis } from './redis';
 
 const debug = createDebug('app:dataFeeds');
 const logError = createDebug('app:dataFeeds:error');
 logError.log = console.error.bind(console);
-bluebird.promisifyAll(createRedis.RedisClient.prototype);
-bluebird.promisifyAll(createRedis.Multi.prototype);
-const redis = createRedis.createClient({ port: 6379 });
 
 const dataFeedsArr = [];
-const SUBID_MD = 'subID|md';
-const SUBID_LASTMD = 'subID|lastMd';
 
 const matchDataFeed = newConfig => elem => (
   elem.config.name === newConfig.name
@@ -34,8 +28,8 @@ function addPublisherListenerToDataFeed(dataFeed) {
             try {
               const subID = dataFeed.mdToSubID(data);
               redis.multi()
-                .publish([SUBID_MD, subID].join(':'), JSON.stringify(data))
-                .set([SUBID_LASTMD, subID].join(':'), JSON.stringify(data))
+                .publish(redis.join(redis.SUBID_MD, subID), JSON.stringify(data))
+                .set(redis.join(redis.SUBID_LASTMD, subID), JSON.stringify(data))
                 .execAsync()
                 ;
             } catch (error) {

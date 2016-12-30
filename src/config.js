@@ -7,6 +7,25 @@ export const grpcConfig = {
   port: '50052',
 };
 
+export const redisConfig = {
+  port: 6379,
+  constants: ['globallyUnused', 'globallySubscribed'],
+  keys: {
+    subID: {
+      subKeyDefs: ['dataFeedName', 'dataType', 'resolution', 'symbol'],
+      valueDefs: ['sessionIDs', 'md', 'lastMd'],
+    },
+    subsInfo: {
+      subKeyDefs: ['infoName'],
+      valueDefs: ['subIDs'],
+    },
+    dataType: {
+      subKeyDefs: ['dataType'],
+      valueDefs: ['sessionIDs'],
+    },
+  },
+};
+
 export const marketDataConfigs = [
   {
     serviceName: 'smartwinFuturesMd',
