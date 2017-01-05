@@ -6,11 +6,7 @@ import program from 'commander';
 import { upperFirst } from 'lodash';
 import mongodb from 'sw-mongodb';
 import marketDataGatewayGrpc from './marketDataGateway.grpc';
-import {
-  marketDataConfigs,
-  grpcConfig,
-  mongodbUrl,
-} from './config';
+import config from './config';
 import marketDatas from './marketDatas';
 
 program
@@ -18,16 +14,19 @@ program
   .option('-c, --credentials-name [value]', 'the name of the server ssl credentials .crt/.key')
   .parse(process.argv);
 
-const grpcUrl = `${grpcConfig.ip}:${grpcConfig.port}`;
+const grpcUrl = `${config.grpcConfig.ip}:${config.grpcConfig.port}`;
 const debug = createDebug(`app:main:${grpcUrl}`);
 const logError = createDebug(`app:main:${grpcUrl}:error`);
 logError.log = console.error.bind(console);
-process.on('uncaughtException', error => logError('process.on(uncaughtException): %o', error));
+process
+  .on('uncaughtException', error => logError('process.on(uncaughtException): %o', error))
+  .on('warning', warning => logError('process.on(warning): %o', warning))
+  ;
 
 async function init() {
   try {
-    await mongodb.connect(mongodbUrl);
-    const initMarketDatasReport = await Promise.all(marketDataConfigs.map(
+    mongodb.setURL(config.mongodbURL);
+    const initMarketDatasReport = await Promise.all(config.marketDataConfigs.map(
       conf => marketDatas.addMarketData(conf).catch((error) => {
         logError('init1(): %o', error);
         return `failed adding ${conf.serviceName}`;
@@ -42,7 +41,8 @@ async function init() {
 async function main() {
   try {
     debug('app.js main');
-    debug('marketDataConfigs %o', marketDataConfigs);
+    debug('main config %o', config);
+    debug('marketDataConfigs %o', config.marketDataConfigs);
     await init();
 
     const marketDataProto = grpc.load(__dirname.concat('/marketDataGateway.proto'));
@@ -68,15 +68,15 @@ async function main() {
     );
 
     // load unique marketData interface service
-    for (const config of marketDataConfigs) {
+    for (const mdConfig of config.marketDataConfigs) {
       debug('config %o', config);
       server.addProtoService(
-        marketDataProto[config.serviceName][upperFirst(config.serviceName)].service,
-        marketDataGatewayGrpc[config.serviceName],
+        marketDataProto[mdConfig.serviceName][upperFirst(mdConfig.serviceName)].service,
+        marketDataGatewayGrpc[mdConfig.serviceName],
       );
     }
 
-    server.bind(`${grpcConfig.ip}:${grpcConfig.port}`, sslCreds);
+    server.bind(`${config.grpcConfig.ip}:${config.grpcConfig.port}`, sslCreds);
     server.start();
   } catch (error) {
     logError('main(): %o', error);

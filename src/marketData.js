@@ -1,13 +1,12 @@
 import createDebug from 'debug';
 import { reduce } from 'lodash';
 import mongodb from 'sw-mongodb';
+import crud from 'sw-mongodb-crud';
 import dataFeeds from './dataFeeds';
 
 const debug = createDebug('app:marketData');
 const logError = createDebug('app:marketData:error');
 logError.log = console.error.bind(console);
-
-let smartwinDB;
 
 const matchDataDescription = newDesc => desc => (
   desc.mode === newDesc.mode &&
@@ -19,7 +18,9 @@ export default function createMarketData(config) {
   try {
     const init = async () => {
       try {
-        smartwinDB = await mongodb.getDB();
+        const dbInstance = await mongodb.getDB();
+        crud.setDB(dbInstance);
+
         const addDataFeedPromises = config.dataFeeds
           .map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig).catch(error => logError('failed adding dataFeed %o with error: %o', dataFeedConfig.name, error)))
           ;
@@ -165,16 +166,8 @@ export default function createMarketData(config) {
 
     const getInstruments = async (symbols) => {
       try {
-        const INSTRUMENT = smartwinDB.collection('INSTRUMENT');
-        const query = { instrumentid: { $in: symbols } };
-        const projection = { _id: 0 };
-        const instruments = await INSTRUMENT.find(query, projection).toArray();
+        const instruments = await crud.instrument.getList({ instruments: symbols });
 
-        instruments.map((ins) => {
-          ins.updatedate = ins.updatedate.toISOString();
-          if ('update_date' in ins) delete ins.update_date;
-          return ins;
-        });
         return instruments;
       } catch (error) {
         logError('getInstruments(): %o', error);

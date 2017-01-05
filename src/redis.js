@@ -1,7 +1,7 @@
 import createDebug from 'debug';
 import createRedis from 'redis';
 import bluebird from 'bluebird';
-import { redisConfig } from './config';
+import config from './config';
 
 // const debug = createDebug('app:redis');
 const logError = createDebug('app:redis:error');
@@ -54,18 +54,18 @@ function getSubKeys(fullKey) {
 // Redis keyNamespace = keyDefinition + '|' + valueDefinition
 // Redis key = subKey1 + ':' + subKey2 + ':' + subKey3
 
-const redisKeyDefs = Object.keys(redisConfig.keys);
+const redisKeyDefs = Object.keys(config.redisConfig.keys);
 
-// Add redisConfig keys to ns object
+// Add config.redisConfig keys to ns object
 redisKeyDefs.reduce((accu, keyDef) => {
-  for (const valueDef of redisConfig.keys[keyDef].valueDefs) {
+  for (const valueDef of config.redisConfig.keys[keyDef].valueDefs) {
     accu[''.concat(keyDef.toUpperCase(), ns.NSVARSEP, valueDef.toUpperCase())] = joinNamespace(keyDef, valueDef);
   }
   return accu;
 }, ns);
 
-// Add redisConfig constants to ns object
-if ('constants' in redisConfig) for (const constant of redisConfig.constants) ns[constant.toUpperCase()] = constant;
+// Add config.redisConfig constants to ns object
+if ('constants' in config.redisConfig) for (const constant of config.redisConfig.constants) ns[constant.toUpperCase()] = constant;
 
 function getSubKeysByNames(fullKey, ...subKeyNames) {
   try {
@@ -82,7 +82,7 @@ function getSubKeysByNames(fullKey, ...subKeyNames) {
       } else if (subKeyName === ns.KEY) {
         return getKey(fullKey);
       }
-      const indexOfSubKey = redisConfig.keys[keyDef].subKeyDefs.indexOf(subKeyName);
+      const indexOfSubKey = config.redisConfig.keys[keyDef].subKeyDefs.indexOf(subKeyName);
       if (indexOfSubKey !== -1) return subKeys[indexOfSubKey];
       throw new Error(`cannot find the subkey ${subKeyName}`);
     });
@@ -104,6 +104,6 @@ const redisTools = {
   getKeyDef,
 };
 
-const redisBase = createRedis.createClient({ port: redisConfig.port });
+const redisBase = createRedis.createClient({ port: config.redisConfig.port });
 export const redis = Object.assign(redisBase, redisTools, ns);
 export const redisSub = Object.assign(redis.duplicate(), redisTools, ns);
