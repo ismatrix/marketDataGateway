@@ -483,6 +483,8 @@ async function getLastMarketDatas(call, callback) {
       if (sub.dataType !== dataType) throw new Error(`cannot ask for dataType: "${sub.dataType}" with method: "${methodName}"`);
     }
 
+    if (subs.length === 0) return callback(null, {});
+
     const marketData = marketDatas.getMarketData(serviceName);
 
     const subIDs = subs.map((sub) => {
