@@ -28,7 +28,7 @@ deploy:
     - git reset --hard HEAD
     - git clean -f -d
     - git pull
-    - npm --registry=https://registry.npm.taobao.org install
+    - npm install --production --registry=https://registry.npm.taobao.org
     - rm -Rf dist
     - npm run compile
     - rm -rf /home/ops/production/marketDataGateway/crt
