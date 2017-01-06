@@ -17,130 +17,9 @@ redisSub.subscribe(redis.join(redis.SUBSINFO_SUBIDS, redis.GLOBALLYUNUSED));
 
 const grpcClientStreams = new Set();
 
-async function removeSessionIDsWithoutOpenStream() {
-  try {
-    const grpcClientStreamsArr = Array.from(grpcClientStreams);
-    const allLocalSessionIDs = grpcClientStreamsArr.map(elem => elem.sessionID);
-
-    const [
-      allSessionIDsInSubIDs,
-      allSessionIDsInDataTypes,
-    ] = await redis.multi()
-      .keys(`${redis.SUBID_SESSIONIDS}:*`)
-      .keys(`${redis.DATATYPE_SESSIONIDS}:*`)
-      .execAsync()
-      ;
-
-    const allKeysHavingSessionIDs = allSessionIDsInSubIDs.concat(allSessionIDsInDataTypes);
-    if (allKeysHavingSessionIDs.length === 0) return;
-
-    const allRedisSessionIDs = await redis.sunionAsync(...allKeysHavingSessionIDs);
-
-    const orphanRedisSessionIDs = difference(allRedisSessionIDs, allLocalSessionIDs);
-    if (orphanRedisSessionIDs.length === 0) return;
-
-    debug('orphanRedisSessionIDs %o', orphanRedisSessionIDs);
-
-    const removeReport = await redis.multi(allKeysHavingSessionIDs.map(key => (['SREM', key, ...orphanRedisSessionIDs])))
-      .execAsync()
-      ;
-    debug('removeReport %o', removeReport);
-  } catch (error) {
-    logError('removeSessionIDsWithoutOpenStream(): %o', error);
-    throw error;
-  }
-}
-// On node restart, clear redisOrphanSessionIDs if client didn't reconnect after 1mn
-setTimeout(removeSessionIDsWithoutOpenStream, 60000);
-
-// async function getGloballyNotSubscribedSubIDs() {
-//   try {
-//     const redisResult = await redis.multi()
-//       .smembers(redis.join(redis.SUBSINFO_SUBIDS, redis.GLOBALLYSUBSCRIBED))
-//       .pubsub('CHANNELS', `${redis.SUBID_MD}:*`)
-//       .execAsync()
-//       ;
-//     const globalSubIDs = redisResult[0];
-//     const globallySubscribedSubIDs =
-//       redisResult[1].map(elem => elem.substr(redis.SUBID_MD.length + 1));
-//
-//     const globallyNotSubscribedSubIDs = difference(globalSubIDs, globallySubscribedSubIDs);
-//     debug('globallyNotSubscribedSubIDs %o', globallyNotSubscribedSubIDs);
-//
-//     return globallyNotSubscribedSubIDs;
-//   } catch (error) {
-//     logError('getGloballyNotSubscribedSubIDs(): %o', error);
-//     throw error;
-//   }
-// }
-//
-// async function getLocallyEmptySubIDs(subIDs) {
-//   try {
-//     const grpcClientStreamsArr = Array.from(grpcClientStreams);
-//     const allLocalStreamSessionIDs = grpcClientStreamsArr.map(elem => elem.sessionID);
-//
-//     const allSessionIDsInSubIDs = await redis
-//       .multi(subIDs.map(subID => (['SMEMBERS', `${redis.SUBID_SESSIONIDS}:${subID}`])))
-//       .execAsync()
-//       ;
-//
-//     const locallyEmptySubIDs = allSessionIDsInSubIDs.reduce((accu, sessionids, index) => {
-//       const locallySubscribed = intersection(sessionids, allLocalStreamSessionIDs);
-//       if (locallySubscribed.length === 0) accu.push(subIDs[index]);
-//       return accu;
-//     }, []);
-//
-//     debug('locallyEmptySubIDs %o', locallyEmptySubIDs);
-//     return locallyEmptySubIDs;
-//   } catch (error) {
-//     logError('getLocallyEmptySubIDs(): %o', error);
-//     throw error;
-//   }
-// }
-
-async function removeSessionIDFromAllSubIDsByDataType(sessionID, dataType) {
-  try {
-    const allSubIDSessionIDsKeys = await redis.keysAsync(`${redis.SUBID_SESSIONIDS}:*`);
-    const allDataTypeFilteredKeys = allSubIDSessionIDsKeys.filter(elem => elem.includes(dataType));
-
-    const isRemovedSessionID = await redis
-      .multi(allDataTypeFilteredKeys.map(elem => (['SREM', elem, sessionID])))
-      .execAsync()
-      ;
-
-    const removedFromSids = allDataTypeFilteredKeys.reduce((accu, curr, index) => {
-      if (isRemovedSessionID[index]) accu.push(curr.substr(redis.SUBID_SESSIONIDS.length + 1));
-      return accu;
-    }, []);
-    debug('stream %o left these rooms %o', sessionID, removedFromSids);
-    return removedFromSids;
-  } catch (error) {
-    logError('removeSessionIDFromAllSubIDsByDataType(): %o', error);
-    throw error;
-  }
-}
-
-async function getSubIDsOfSessionID(sessionID) {
-  try {
-    const sidsKeys = await redis.keysAsync(`${redis.SUBID_SESSIONIDS}:*`);
-
-    const isMember = await redis
-      .multi(sidsKeys.map(elem => (['SISMEMBER', elem, sessionID])))
-      .execAsync()
-      ;
-
-    const subIDsOfSessionID = sidsKeys.reduce((acc, cur, index) => {
-      if (isMember[index]) acc.push(cur.substr(redis.SUBID_SESSIONIDS.length + 1));
-      return acc;
-    }, []);
-    debug('subIDsOfSessionID %o', subIDsOfSessionID);
-
-    return subIDsOfSessionID;
-  } catch (error) {
-    logError('getSubIDsOfSessionID(): %o', error);
-    throw error;
-  }
-}
+// On node restart, clear orphanSessionIDs if client didn't reconnect after 1mn
+const openStreamSessionIDs = Array.from(grpcClientStreams).map(elem => elem.sessionID);
+setTimeout(() => subscriber.removeOrphanSessionIDs(openStreamSessionIDs), 60000);
 
 redisSub.on('message', async (room, message) => {
   try {
@@ -342,7 +221,8 @@ async function getMarketDataStream(stream) {
           grpcClientStreams.delete(stream);
           await redis.sremAsync(
             redis.join(redis.DATATYPE_SESSIONIDS, stream.dataType), stream.sessionID);
-          await removeSessionIDFromAllSubIDsByDataType(stream.sessionID, stream.dataType);
+          await subscriber.removeSessionIDFromAllSubIDsByDataType(
+            stream.sessionID, stream.dataType);
           // const needRedisUnsubscribeSubIDs = await getLocallyEmptySubIDs(leftSubIDs);
           // needRedisUnsubscribeSubIDs.forEach(elem =>
           // redisSub.unsubscribe(redis.join(redis.SUBID_MD, elem));
@@ -365,7 +245,7 @@ async function getMarketDataStream(stream) {
     grpcClientStreams.add(stream);
     await redis.saddAsync(redis.join(redis.DATATYPE_SESSIONIDS, stream.dataType), stream.sessionID);
 
-    const streamExistingSubIDs = await getSubIDsOfSessionID(stream.sessionID);
+    const streamExistingSubIDs = await subscriber.getSubIDsOfSessionID(stream.sessionID);
     const globalSubIDs = await redis.smembersAsync(
       redis.join(redis.SUBSINFO_SUBIDS, redis.GLOBALLYSUBSCRIBED));
     const needSubscribeSubIDs = difference(streamExistingSubIDs, globalSubIDs);
@@ -573,7 +453,7 @@ async function getMySubscriptions(call, callback) {
 
     debug('getMySubscriptions(): grpcCall from callID: %o', betterCallID);
 
-    const subIDs = await getSubIDsOfSessionID(sessionID);
+    const subIDs = await subscriber.getSubIDsOfSessionID(sessionID);
 
     const subscriptions = subIDs.map(subID => subscriber.subIDToSub(subID));
 
