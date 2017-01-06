@@ -3,7 +3,7 @@ import createRedis from 'redis';
 import bluebird from 'bluebird';
 import config from './config';
 
-// const debug = createDebug('app:redis');
+const debug = createDebug('app:redis');
 const logError = createDebug('app:redis:error');
 logError.log = console.error.bind(console);
 
@@ -47,6 +47,10 @@ function getKeyDef(fullKey) {
   return fullKey.split(ns.KEYDEFANDVALUEDEFSEP)[0];
 }
 
+function getValueDef(fullKey) {
+  return getNamespace(fullKey).split(ns.KEYDEFANDVALUEDEFSEP)[1];
+}
+
 function getSubKeys(fullKey) {
   return getKey(fullKey).split(ns.SUBKEYSSEP);
 }
@@ -58,6 +62,9 @@ const redisKeyDefs = Object.keys(config.redisConfig.keys);
 
 // Add config.redisConfig keys to ns object
 redisKeyDefs.reduce((accu, keyDef) => {
+  // First add the keyDef to ns object
+  accu[keyDef.toUpperCase()] = keyDef;
+  // Then add key namespace to ns object
   for (const valueDef of config.redisConfig.keys[keyDef].valueDefs) {
     accu[''.concat(keyDef.toUpperCase(), ns.NSVARSEP, valueDef.toUpperCase())] = joinNamespace(keyDef, valueDef);
   }
@@ -67,7 +74,7 @@ redisKeyDefs.reduce((accu, keyDef) => {
 // Add config.redisConfig constants to ns object
 if ('constants' in config.redisConfig) for (const constant of config.redisConfig.constants) ns[constant.toUpperCase()] = constant;
 
-function getSubKeysByNames(fullKey, ...subKeyNames) {
+function getFullKeyParts(fullKey, ...subKeyNames) {
   try {
     const keyDef = getKeyDef(fullKey);
     const subKeys = getSubKeys(fullKey);
@@ -78,7 +85,7 @@ function getSubKeysByNames(fullKey, ...subKeyNames) {
       } else if (subKeyName === ns.KEYDEF) {
         return keyDef;
       } else if (subKeyName === ns.VALUEDEF) {
-        return getKeyDef(fullKey);
+        return getValueDef(fullKey);
       } else if (subKeyName === ns.KEY) {
         return getKey(fullKey);
       }
@@ -87,7 +94,18 @@ function getSubKeysByNames(fullKey, ...subKeyNames) {
       throw new Error(`cannot find the subkey ${subKeyName}`);
     });
   } catch (error) {
-    logError('getSubKeysByNames(): %o', error);
+    logError('getFullKeyParts(): %o', error);
+    throw error;
+  }
+}
+
+
+function getKeyParts(keyDef, key, ...partsNames) {
+  try {
+    const fullKey = joinFullKey(joinNamespace(keyDef), key);
+    return getFullKeyParts(fullKey, ...partsNames);
+  } catch (error) {
+    logError('getKeyParts(): %o', error);
     throw error;
   }
 }
@@ -97,7 +115,8 @@ const redisTools = {
   joinFullKey,
   join,
   joinSubKeys,
-  getSubKeysByNames,
+  getFullKeyParts,
+  getKeyParts,
   getSubKeys,
   getNamespace,
   getKey,
@@ -107,3 +126,4 @@ const redisTools = {
 const redisBase = createRedis.createClient({ port: config.redisConfig.port });
 export const redis = Object.assign(redisBase, redisTools, ns);
 export const redisSub = Object.assign(redis.duplicate(), redisTools, ns);
+debug('redis.ns %o', ns);
