@@ -1,5 +1,6 @@
 import createDebug from 'debug';
 import { upperFirst, difference } from 'lodash';
+import crud from 'sw-mongodb-crud';
 import { redis, redisSub } from '../redis';
 import marketDatas from '../marketDatas';
 import dataFeeds from '../dataFeeds';
@@ -412,11 +413,25 @@ async function getInstruments(call, callback) {
   try {
     const user = await grpcCan(call, 'read', 'getOrders');
     const betterCallID = createBetterCallID(callID, user.userid);
-
     debug('getInstruments() symbols: %o, grpcCall from callID: %o', call.request.symbols, betterCallID);
-    const marketData = marketDatas.getMarketData(serviceName);
 
-    const instruments = await marketData.getInstruments(call.request.symbols);
+    const req = call.request;
+    const filter = {};
+
+    if ('symbols' in req && req.symbols.length && !req.symbols.includes('all')) filter.instruments = req.symbols;
+    if ('products' in req && req.products.length && !req.products.includes('all')) filter.product = req.products;
+    if ('exchanges' in req && req.exchanges.length && !req.exchanges.includes('all')) filter.exchange = req.exchanges;
+    if ('ranks' in req && req.ranks.length && !req.ranks.includes('all')) filter.rank = req.ranks;
+    if ('productClasses' in req && req.productClasses.length && !req.productClasses.includes('all')) filter.productclass = req.productClasses;
+    if ('isTrading' in req && req.isTrading.length && !req.isTrading.includes('all')) filter.istrading = req.isTrading;
+
+    debug('filter %o', filter);
+    const dbInstruments = await crud.instrument.getList(filter);
+    // db instrumentname === null not compatible with proto3
+    const instruments = dbInstruments.map((ins) => {
+      if (ins.instrumentname === null) delete ins.instrumentname;
+      return ins;
+    });
 
     callback(null, { instruments });
   } catch (error) {

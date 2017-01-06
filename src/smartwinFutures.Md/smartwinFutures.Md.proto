@@ -31,7 +31,12 @@ message Empty {
 }
 
 message GetInstrumentsRequest {
-  repeated string symbols = 1;
+  repeated string symbols = 1; // ex: ['IH1609', 'IF1610']
+  repeated string products = 2; // ex: ['cu']
+  repeated string exchanges = 3; // ex: ['SHFE']
+  repeated int32 ranks = 4; // ex: [1, 2]
+  repeated string productClasses = 5; // ex: ['1', '2', '8']
+  repeated int32 isTrading = 6; // ex: [1, 0]
 }
 
 message Instruments {
