@@ -37,7 +37,7 @@
     "lodash": "^4.16.6",
     "lokijs": "^1.4.1",
     "redis": "^2.6.3",
-    "sw-datafeed-icelive": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icelive.git#v1.0.12",
+    "sw-datafeed-icelive": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icelive.git#v1.0.13",
     "sw-datafeed-icepast": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icepast.git#v1.0.13",
     "sw-datafeed-mongodb": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-mongodb.git#v1.0.2",
     "sw-mongodb": "git+ssh://git@code.invesmart.net:8800/npm/sw-mongodb.git#v1.0.3",
