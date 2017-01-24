@@ -1,11 +1,12 @@
 import createDebug from 'debug';
 import { upperFirst, difference } from 'lodash';
+import grpc from 'grpc';
 import crud from 'sw-mongodb-crud';
+import can from 'sw-can';
 import { redis, redisSub } from '../redis';
 import marketDatas from '../marketDatas';
 import dataFeeds from '../dataFeeds';
 import subscriber from '../subscriber';
-import grpcCan from '../acl';
 
 const debug = createDebug('app:smartwinFuturesMd.grpc');
 const logError = createDebug('app:smartwinFuturesMd.grpc:error');
@@ -68,7 +69,7 @@ function createBetterCallID(callID, ...args) {
 async function getPastMarketDataStream(stream) {
   const callID = createCallID(stream);
   try {
-    const user = await grpcCan(stream, 'read', 'getOrders');
+    const user = await can.grpc(stream, 'get', 'smartwinFuturesMd');
 
     const betterCallID = createBetterCallID(callID, user.userid, stream.request.dataType);
     debug('getPastMarketDataStream(): grpcCall from callID: %o', betterCallID);
@@ -137,7 +138,7 @@ async function getPastDayBarStream(stream) {
 async function subscribeMarketData(call, callback) {
   const callID = createCallID(call);
   try {
-    const user = await grpcCan(call, 'read', 'getOrders');
+    const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
 
     const betterCallID = createBetterCallID(callID, user.userid);
 
@@ -165,7 +166,7 @@ async function subscribeMarketData(call, callback) {
 async function unsubscribeMarketData(call, callback) {
   const callID = createCallID(call);
   try {
-    const user = await grpcCan(call, 'read', 'getOrders');
+    const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
 
     const betterCallID = createBetterCallID(callID, user.userid);
 
@@ -201,7 +202,7 @@ async function unsubscribeMarketData(call, callback) {
 async function getMarketDataStream(stream) {
   const callID = createCallID(stream);
   try {
-    const user = await grpcCan(stream, 'read', 'getOrders');
+    const user = await can.grpc(stream, 'get', 'smartwinFuturesMd');
     stream.user = user;
     stream.sessionID = stream.metadata.get('sessionid')[0];
 
@@ -245,6 +246,16 @@ async function getMarketDataStream(stream) {
 
     grpcClientStreams.add(stream);
     await redis.saddAsync(redis.join(redis.DATATYPE_SESSIONIDS, stream.dataType), stream.sessionID);
+
+    // const metadataUpdater = (serviceUrl, callback) => {
+    //   const metadata = new grpc.Metadata();
+    //   metadata.set('callback', 'ok');
+    //   callback(null, metadata);
+    // };
+    // const metadataCreds = grpc.credentials.createFromMetadataGenerator(metadataUpdater);
+    const metadataCB = new grpc.Metadata();
+    metadataCB.add('ok', 'true');
+    stream.sendMetadata(metadataCB);
 
     const streamExistingSubIDs = await subscriber.getSubIDsOfSessionID(stream.sessionID);
     const globalSubIDs = await redis.smembersAsync(
@@ -317,7 +328,7 @@ async function getLastMarketDatas(call, callback) {
     const dataType = call.request.dataType;
     const subs = call.request.subscriptions;
     const methodName = `getLast${upperFirst(dataType)}s`;
-    const user = await grpcCan(call, 'read', 'getOrders');
+    const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
     const betterCallID = createBetterCallID(callID, user.userid);
     debug('%o(): grpcCall from callID: %o', methodName, betterCallID);
 
@@ -411,7 +422,7 @@ async function getLastDayBars(call, callback) {
 async function getInstruments(call, callback) {
   const callID = createCallID(call);
   try {
-    const user = await grpcCan(call, 'read', 'getOrders');
+    const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
     const betterCallID = createBetterCallID(callID, user.userid);
     debug('getInstruments() request: %o, grpcCall from callID: %o', call.request, betterCallID);
 
@@ -443,7 +454,7 @@ async function getInstruments(call, callback) {
 async function getSubscribableDataDescriptions(call, callback) {
   const callID = createCallID(call);
   try {
-    const user = await grpcCan(call, 'read', 'getOrders');
+    const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
     const betterCallID = createBetterCallID(callID, user.userid);
 
     debug('getSubscribableDataDescriptions(): grpcCall from callID: %o', betterCallID);
@@ -461,7 +472,7 @@ async function getSubscribableDataDescriptions(call, callback) {
 async function getMySubscriptions(call, callback) {
   const callID = createCallID(call);
   try {
-    const user = await grpcCan(call, 'read', 'getOrders');
+    const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
     const betterCallID = createBetterCallID(callID, user.userid);
 
     const sessionID = call.metadata.get('sessionid')[0];

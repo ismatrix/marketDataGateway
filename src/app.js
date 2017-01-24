@@ -5,6 +5,8 @@ import grpc from 'grpc';
 import program from 'commander';
 import { upperFirst } from 'lodash';
 import mongodb from 'sw-mongodb';
+import crud from 'sw-mongodb-crud';
+import can from 'sw-can';
 import marketDataGatewayGrpc from './marketDataGateway.grpc';
 import config from './config';
 import marketDatas from './marketDatas';
@@ -25,7 +27,6 @@ process
 
 async function init() {
   try {
-    mongodb.setURL(config.mongodbURL);
     const initMarketDatasReport = await Promise.all(config.marketDataConfigs.map(
       conf => marketDatas.addMarketData(conf).catch((error) => {
         logError('init1(): %o', error);
@@ -43,6 +44,14 @@ async function main() {
     debug('app.js main');
     debug('main config %o', config);
     debug('marketDataConfigs %o', config.marketDataConfigs);
+
+    const dbInstance = await mongodb.getDB(config.mongodbURL);
+    crud.setDB(dbInstance);
+
+    // init can module with ACL
+    const acl = await dbInstance.collection('ACL').find().toArray();
+    can.init({ jwtSecret: config.jwtSecret, acl });
+
     await init();
 
     const marketDataProto = grpc.load(__dirname.concat('/marketDataGateway.proto'));

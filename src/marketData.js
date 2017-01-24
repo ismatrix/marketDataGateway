@@ -1,6 +1,5 @@
 import createDebug from 'debug';
 import { reduce } from 'lodash';
-import mongodb from 'sw-mongodb';
 import crud from 'sw-mongodb-crud';
 import dataFeeds from './dataFeeds';
 
@@ -18,9 +17,6 @@ export default function createMarketData(config) {
   try {
     const init = async () => {
       try {
-        const dbInstance = await mongodb.getDB();
-        crud.setDB(dbInstance);
-
         const addDataFeedPromises = config.dataFeeds
           .map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig).catch(error => logError('failed adding dataFeed %o with error: %o', dataFeedConfig.name, error)))
           ;

@@ -1,6 +1,6 @@
 import createDebug from 'debug';
+import can from 'sw-can';
 import marketDatas from './marketDatas';
-import grpcCan from './acl';
 
 const debug = createDebug('app:marketDataGatewayAdmin.grpc');
 const logError = createDebug('app:marketDataGatewayAdmin.grpc:error');
@@ -8,7 +8,7 @@ logError.log = console.error.bind(console);
 
 async function getMarketDatasConfigs(call, callback) {
   try {
-    await grpcCan(call, 'read', 'getOrders');
+    await can.grpc(call, 'get', 'marketDataGateway/configs');
     debug('getMarketDatasConfigs()');
 
     const marketDatasConfigs = marketDatas.getMarketDatasConfigs();
