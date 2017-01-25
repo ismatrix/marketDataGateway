@@ -156,6 +156,7 @@ message Bar {
   int32 volume = 9; //
   double turnover = 10; //
   double openInterest = 11; //
+  string tradingday = 12; //
 }
 
 message Ticker {
@@ -173,7 +174,7 @@ message Ticker {
   double askPrice1 = 12; // 卖一价
   int32	bidVolume1 = 13; // 买一量
   int32	askVolume1 = 14; // 卖一量
-  string date = 15;
+  string tradingday = 15; //
 }
 
 message DayBar {
