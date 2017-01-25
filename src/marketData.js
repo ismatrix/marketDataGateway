@@ -1,5 +1,7 @@
 import createDebug from 'debug';
 import { reduce } from 'lodash';
+import crud from 'sw-mongodb-crud';
+import schedule from 'node-schedule';
 import dataFeeds from './dataFeeds';
 
 const debug = createDebug('app:marketData');
@@ -14,8 +16,31 @@ const matchDataDescription = newDesc => desc => (
 
 export default function createMarketData(config) {
   try {
+    let memoryInstruments = [];
+
+    const updateMemoryInstruments = async () => {
+      try {
+        const dbInstruments = await crud.instrument.getList({
+          istrading: [1],
+          poductclass: ['1'],
+        });
+        debug('dbInstruments.length: %o', dbInstruments.length);
+        // db instrumentname === null not compatible with proto3
+        memoryInstruments = dbInstruments.map((ins) => {
+          if (ins.instrumentname === null) delete ins.instrumentname;
+          return ins;
+        });
+        debug('memoryInstruments.length: %o', memoryInstruments.length);
+      } catch (error) {
+        logError('updateMemoryInstruments(): %o', error);
+        throw error;
+      }
+    };
+    schedule.scheduleJob('01 21 * * 1-5', updateMemoryInstruments);
+
     const init = async () => {
       try {
+        await updateMemoryInstruments();
         const addDataFeedPromises = config.dataFeeds
           .map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig).catch(error => logError('failed adding dataFeed %o with error: %o', dataFeedConfig.name, error)))
           ;
@@ -172,6 +197,24 @@ export default function createMarketData(config) {
       }
     };
 
+    const getMemoryInstruments = (filter) => {
+      try {
+        const filteredMemoryInstruments = memoryInstruments.filter(ins => (
+          (filter.symbols.length === 0 || filter.symbols.includes(ins.instrumentid))
+          && (filter.products.length === 0 || filter.products.includes(ins.productid))
+          && (filter.exchanges.length === 0 || filter.exchanges.includes(ins.exchangeid))
+          && (filter.ranks.length === 0 || filter.ranks.includes(ins.rank))
+          &&
+          (filter.productClasses.length === 0 || filter.productClasses.includes(ins.productclass))
+          && (filter.isTrading.length === 0 || filter.isTrading.includes(ins.istrading))
+        ));
+        return filteredMemoryInstruments;
+      } catch (error) {
+        logError('getMemoryInstruments(): %o', error);
+        throw error;
+      }
+    };
+
     const marketDataBase = {
       config,
       init,
@@ -180,6 +223,7 @@ export default function createMarketData(config) {
       getDataFeedByDataDescription,
       getDataFeedBySubscription,
       getSubscribableDataDescriptions,
+      getMemoryInstruments,
     };
     const marketData = marketDataBase;
     return marketData;

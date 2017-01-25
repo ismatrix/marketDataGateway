@@ -22,6 +22,7 @@ service SmartwinFuturesMd {
   rpc GetLastDayBars(Subscriptions) returns (LastDayBarsResponse) {}
 
   rpc GetInstruments(GetInstrumentsRequest) returns (Instruments) {}
+  rpc GetMemoryInstruments(GetInstrumentsRequest) returns (Instruments) {}
 
   rpc GetSubscribableDataDescriptions(Empty) returns (SubscribableDataDescriptionsResponse) {}
   rpc GetMySubscriptions(Empty) returns (Subscriptions) {}

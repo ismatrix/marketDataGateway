@@ -429,12 +429,12 @@ async function getInstruments(call, callback) {
     const req = call.request;
     const filter = {};
 
-    if ('symbols' in req && req.symbols.length && !req.symbols.includes('all')) filter.instruments = req.symbols;
-    if ('products' in req && req.products.length && !req.products.includes('all')) filter.product = req.products;
-    if ('exchanges' in req && req.exchanges.length && !req.exchanges.includes('all')) filter.exchange = req.exchanges;
-    if ('ranks' in req && req.ranks.length && !req.ranks.includes('all')) filter.rank = req.ranks;
-    if ('productClasses' in req && req.productClasses.length && !req.productClasses.includes('all')) filter.productclass = req.productClasses;
-    if ('isTrading' in req && req.isTrading.length && !req.isTrading.includes('all')) filter.istrading = req.isTrading;
+    if (req.symbols.length && !req.symbols.includes('all')) filter.instruments = req.symbols;
+    if (req.products.length && !req.products.includes('all')) filter.product = req.products;
+    if (req.exchanges.length && !req.exchanges.includes('all')) filter.exchange = req.exchanges;
+    if (req.ranks.length && !req.ranks.includes('all')) filter.rank = req.ranks;
+    if (req.productClasses.length && !req.productClasses.includes('all')) filter.productclass = req.productClasses;
+    if (req.isTrading.length && !req.isTrading.includes('all')) filter.istrading = req.isTrading;
 
     const dbInstruments = await crud.instrument.getList(filter);
 
@@ -447,6 +447,22 @@ async function getInstruments(call, callback) {
     callback(null, { instruments });
   } catch (error) {
     logError('getInstruments(): callID: %o, %o', callID, error);
+    callback(error);
+  }
+}
+
+async function getMemoryInstruments(call, callback) {
+  const callID = createCallID(call);
+  try {
+    const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
+    const betterCallID = createBetterCallID(callID, user.userid);
+    debug('getMemoryInstruments() request: %o, grpcCall from callID: %o', call.request, betterCallID);
+
+    const marketData = marketDatas.getMarketData(serviceName);
+    const instruments = marketData.getMemoryInstruments(call.request);
+    callback(null, { instruments });
+  } catch (error) {
+    logError('getMemoryInstruments(): callID: %o, %o', callID, error);
     callback(error);
   }
 }
@@ -510,6 +526,7 @@ const smartwinFutures = {
   getLastDayBars,
 
   getInstruments,
+  getMemoryInstruments,
 
   getSubscribableDataDescriptions,
   getMySubscriptions,
