@@ -1,6 +1,5 @@
 import createDebug from 'debug';
 import { reduce } from 'lodash';
-import crud from 'sw-mongodb-crud';
 import dataFeeds from './dataFeeds';
 
 const debug = createDebug('app:marketData');
@@ -160,17 +159,6 @@ export default function createMarketData(config) {
       }
     };
 
-    const getInstruments = async (symbols) => {
-      try {
-        const instruments = await crud.instrument.getList({ instruments: symbols });
-
-        return instruments;
-      } catch (error) {
-        logError('getInstruments(): %o', error);
-        throw error;
-      }
-    };
-
     const getSubscribableDataDescriptions = async () => {
       try {
         const dataDescriptions = getOwnDataFeedConfigs()
@@ -191,7 +179,6 @@ export default function createMarketData(config) {
       getDataFeedByDataType,
       getDataFeedByDataDescription,
       getDataFeedBySubscription,
-      getInstruments,
       getSubscribableDataDescriptions,
     };
     const marketData = marketDataBase;
