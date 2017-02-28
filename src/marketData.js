@@ -9,9 +9,9 @@ const logError = createDebug('app:marketData:error');
 logError.log = console.error.bind(console);
 
 const matchDataDescription = newDesc => desc => (
-  desc.mode === newDesc.mode &&
-  desc.resolution === newDesc.resolution &&
-  desc.dataType === newDesc.dataType);
+  desc.mode === newDesc.mode
+  && newDesc.resolution.includes(desc.resolution)
+  && desc.dataType === newDesc.dataType);
 
 
 export default function createMarketData(config) {
