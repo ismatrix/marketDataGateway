@@ -973,8 +973,8 @@ flat-cache@^1.2.1:
     write "^0.2.1"
 
 for-in@^1.0.1:
-  version "1.0.1"
-  resolved "http://registry.npm.taobao.org/for-in/download/for-in-1.0.1.tgz#d6c3e3798ceaaa301047b109dedf1b1ae37a0efa"
+  version "1.0.2"
+  resolved "http://registry.npm.taobao.org/for-in/download/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
 
 for-own@^0.1.4:
   version "0.1.5"
@@ -1584,7 +1584,7 @@ mongodb-core@2.1.8:
     bson "~1.0.4"
     require_optional "~1.0.0"
 
-mongodb@^2.0.47, mongodb@^2.2.10, mongodb@^2.2.16:
+mongodb@^2.0.47, mongodb@^2.2.16:
   version "2.2.24"
   resolved "http://registry.npm.taobao.org/mongodb/download/mongodb-2.2.24.tgz#80f40d6ec5bdec0ddecf0f9ce0144e794c46449a"
   dependencies:
@@ -2067,8 +2067,8 @@ sprintf-js@~1.0.2:
   resolved "http://registry.npm.taobao.org/sprintf-js/download/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
 
 sshpk@^1.7.0:
-  version "1.10.2"
-  resolved "http://registry.npm.taobao.org/sshpk/download/sshpk-1.10.2.tgz#d5a804ce22695515638e798dbe23273de070a5fa"
+  version "1.11.0"
+  resolved "http://registry.npm.taobao.org/sshpk/download/sshpk-1.11.0.tgz#2d8d5ebb4a6fab28ffba37fa62a90f4a3ea59d77"
   dependencies:
     asn1 "~0.2.3"
     assert-plus "^1.0.0"
@@ -2156,13 +2156,14 @@ supports-color@^2.0.0:
     sw-ice-mdpastsession "git+ssh://git@code.invesmart.net:8800/npm/sw-ice-mdpastsession.git#v1.0.5"
     through2 "^2.0.3"
 
-"sw-datafeed-mongodb@git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-mongodb.git#v1.0.2":
-  version "1.0.2"
-  resolved "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-mongodb.git#5613c3ebfad13bf969ed9c0b61df3ef750c2c0ec"
+"sw-datafeed-mongodb@git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-mongodb.git#v1.0.3":
+  version "1.0.3"
+  resolved "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-mongodb.git#78a6e4249adb4b85ea70b99175b0b56afb2b2539"
   dependencies:
+    babel-register "^6.23.0"
     debug "^2.2.0"
     moment "^2.17.1"
-    mongodb "^2.2.10"
+    sw-mongodb "git+ssh://git@code.invesmart.net:8800/npm/sw-mongodb.git#v1.0.3"
     through2 "^2.0.1"
 
 "sw-fund-smartwin-futures-calculations@git+ssh://git@code.invesmart.net:8800/npm/sw-fund-smartwin-futures-calculations.git#v1.0.23":
