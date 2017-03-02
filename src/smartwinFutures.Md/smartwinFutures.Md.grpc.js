@@ -454,6 +454,8 @@ async function getInstruments(call, callback) {
 async function getMemoryInstruments(call, callback) {
   const callID = createCallID(call);
   try {
+    debug('token: %o', call.metadata.get('Authorization')[0]);
+    debug('sessionid: %o', call.metadata.get('sessionid')[0]);
     const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
     const betterCallID = createBetterCallID(callID, user.userid);
     debug('getMemoryInstruments() request: %o, grpcCall from callID: %o', call.request, betterCallID);

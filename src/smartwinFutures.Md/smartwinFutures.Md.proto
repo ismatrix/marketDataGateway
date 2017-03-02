@@ -87,7 +87,7 @@ message Instrument {
 
 message Subscription {
   string symbol = 1; // ex: 'IF1601'
-  string resolution = 2; // ex: 'minute'|'snapshot'
+  string resolution = 2; // ex: 'minute'|'snapshot', '2minute', '30minute'
   string dataType = 3; // ex: 'bar'|'ticker'|'dayBar'|'marketDepth'
   string startDate = 4; // ex: '2016-07-03'
   string endDate = 5; // ex: '2016-07-03'
