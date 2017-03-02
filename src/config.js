@@ -54,10 +54,11 @@ const productionConfig = {
         },
         {
           name: 'mongodb',
-          dataTypes: ['dayBar'],
+          dataTypes: ['dayBar', 'bar'],
           dataDescriptions: [
             { dataType: 'dayBar', resolution: 'snapshot', mode: 'live' },
             { dataType: 'dayBar', resolution: 'snapshot', mode: 'past' },
+            { dataType: 'bar', resolution: 'day', mode: 'past' },
           ],
           dbName: 'smartwin',
           collectionName: 'DAYBAR',
