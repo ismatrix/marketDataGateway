@@ -33,24 +33,15 @@ const dayBarSubscriptions = [
     { symbol: 'ag1712', resolution: 'snapshot', dataType: 'dayBar' },
 ];
 
-describe('#getMarketDepthStream()', () => {
-  it('success', () => md.getMarketDepthStream({}).on('data', () => {}));
+describe('#getLiveStream()', () => {
+  it('getMarketDepthStream', () => md.getMarketDepthStream({}).on('data', () => {}));
+  it('getBarStream', () => md.getBarStream({}).on('data', () => {}));
+  it('getTickerStream', () => md.getTickerStream({}).on('data', () => {}));
+  it('getDayBarStream', () => md.getDayBarStream({}).on('data', () => {}));
 });
 
-describe('#getBarStream()', () => {
-  it('success', () => md.getBarStream({}).on('data', () => {}));
-});
-
-describe('#getTickerStream()', () => {
-  it('success', () => md.getTickerStream({}).on('data', () => {}));
-});
-
-describe('#getDayBarStream()', () => {
-  it('success', () => md.getDayBarStream({}).on('data', () => {}));
-});
-
-describe('#getPastBarStream()', () => {
-  it('success', () => new Promise((resolve, reject) => {
+describe('#getPastStream()', () => {
+  it('getPastMinuteBarStream', () => new Promise((resolve, reject) => {
     md.getPastBarStream({
       symbol: 'IF1608',
       dataType: 'bar',
@@ -63,10 +54,20 @@ describe('#getPastBarStream()', () => {
     .on('error', error => reject(error))
     ;
   }));
-});
-
-describe('#getPastTickerStream()', () => {
-  it('success', () => new Promise((resolve, reject) => {
+  it('getPastDayBarStream', () => new Promise((resolve, reject) => {
+    md.getPastBarStream({
+      symbol: 'ag1705',
+      dataType: 'bar',
+      resolution: 'day',
+      startDate: '2017-01-16',
+      endDate: '2017-01-16',
+    })
+    .on('data', () => {})
+    .on('end', () => resolve())
+    .on('error', error => reject(error))
+    ;
+  }));
+  it('getPastTickerStream', () => new Promise((resolve, reject) => {
     md.getPastTickerStream({
       symbol: 'IF1608',
       dataType: 'ticker',
@@ -79,10 +80,7 @@ describe('#getPastTickerStream()', () => {
     .on('error', error => reject(error))
     ;
   }));
-});
-
-describe('#getPastDayBarStream()', () => {
-  it('success', () => new Promise((resolve, reject) => {
+  it('getPastDayBarStream', () => new Promise((resolve, reject) => {
     md.getPastDayBarStream({
       symbol: 'IF1608',
       dataType: 'dayBar',
@@ -105,30 +103,21 @@ describe('#unsubscribeMarketData()', () => {
   it('success', () => md.unsubscribeMarketData({ symbol: 'IF1701', resolution: 'minute', dataType: 'bar' }));
 });
 
-describe('#getLastMarketDepths()', () => {
-  it('success', () => md.getLastMarketDepths({ subscriptions: marketDepthSubscriptions }));
-});
-
-describe('#getLastBars()', () => {
-  it('success', () => md.getLastBars({ subscriptions: barSubscriptions }));
-});
-
-describe('#getLastTickers()', () => {
-  it('success', () => md.getLastTickers({ subscriptions: tickerSubscriptions }));
-});
-
-describe('#getLastDayBars()', () => {
-  it('success', () => md.getLastDayBars({ subscriptions: dayBarSubscriptions }));
+describe('#getLastMarketData()', () => {
+  it('getLastMarketDepths', () => md.getLastMarketDepths({ subscriptions: marketDepthSubscriptions }));
+  it('getLastBars', () => md.getLastBars({ subscriptions: barSubscriptions }));
+  it('getLastTickers', () => md.getLastTickers({ subscriptions: tickerSubscriptions }));
+  it('getLastDayBars', () => md.getLastDayBars({ subscriptions: dayBarSubscriptions }));
 });
 
 describe('#getInstruments()', () => {
-  it('success', () => md.getInstruments({ symbols }));
+  it('getInstruments', () => md.getInstruments({ symbols }));
 });
 
 describe('#getSubscribableDataDescriptions()', () => {
-  it('success', () => md.getSubscribableDataDescriptions());
+  it('getSubscribableDataDescriptions', () => md.getSubscribableDataDescriptions());
 });
 
 describe('#getMySubscriptions()', () => {
-  it('success', () => md.getMySubscriptions());
+  it('getMySubscriptions', () => md.getMySubscriptions());
 });
