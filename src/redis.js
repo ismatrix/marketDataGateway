@@ -13,7 +13,7 @@ bluebird.promisifyAll(createRedis.Multi.prototype);
 function encode(str) {
   return str.replace(
     /[-:|_]/g,
-    c => '%'.concat(c.charCodeAt(0).toString(16))
+    c => '%'.concat(c.charCodeAt(0).toString(16)),
   );
 }
 
