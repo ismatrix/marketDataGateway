@@ -399,11 +399,7 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
-bluebird@^3.0.2, bluebird@^3.4.7:
-  version "3.4.7"
-  resolved "http://registry.npm.taobao.org/bluebird/download/bluebird-3.4.7.tgz#f72d760be09b7f76d08ed8fae98b289a8d05fab3"
-
-bluebird@^3.5.0:
+bluebird@^3.0.2, bluebird@^3.4.7, bluebird@^3.5.0:
   version "3.5.0"
   resolved "http://registry.npm.taobao.org/bluebird/download/bluebird-3.5.0.tgz#791420d7f551eea2897453a8a77653f96606d67c"
 
@@ -2143,9 +2139,9 @@ supports-color@^2.0.0:
   version "2.0.0"
   resolved "http://registry.npm.taobao.org/supports-color/download/supports-color-2.0.0.tgz#535d045ce6b6363fa40117084629995e9df324c7"
 
-"sw-can@git+ssh://git@code.invesmart.net:8800/npm/sw-can.git#v1.0.1":
-  version "1.0.1"
-  resolved "git+ssh://git@code.invesmart.net:8800/npm/sw-can.git#d55624a9834535c88f1cdaf8b39e1903a747a2cf"
+"sw-can@git+ssh://git@code.invesmart.net:8800/npm/sw-can.git#v1.0.2":
+  version "1.0.2"
+  resolved "git+ssh://git@code.invesmart.net:8800/npm/sw-can.git#918dc383008a0698442ed757e85b6fc30753047b"
   dependencies:
     acl "^0.4.10"
     bluebird "^3.4.7"
