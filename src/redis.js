@@ -10,6 +10,17 @@ logError.log = console.error.bind(console);
 bluebird.promisifyAll(createRedis.RedisClient.prototype);
 bluebird.promisifyAll(createRedis.Multi.prototype);
 
+function encode(str) {
+  return str.replace(
+    /[-:|_]/g,
+    c => '%'.concat(c.charCodeAt(0).toString(16))
+  );
+}
+
+function decode(str) {
+  return decodeURI(str);
+}
+
 // Redis separators definitions
 const ns = {
   KEYDEFANDVALUEDEFSEP: '|',
@@ -32,7 +43,9 @@ function joinFullKey(namespace, key) {
 const join = joinFullKey;
 
 function joinSubKeys(...subKeys) {
-  return [...subKeys].join(ns.SUBKEYSSEP);
+  return [...subKeys]
+    .map(elem => encode(elem))
+    .join(ns.SUBKEYSSEP);
 }
 
 function getNamespace(fullKey) {
@@ -52,7 +65,7 @@ function getValueDef(fullKey) {
 }
 
 function getSubKeys(fullKey) {
-  return getKey(fullKey).split(ns.SUBKEYSSEP);
+  return getKey(fullKey).split(ns.SUBKEYSSEP).map(elem => decode(elem));
 }
 // Redis fullKey = keyNamespace + '-' + key
 // Redis keyNamespace = keyDefinition + '|' + valueDefinition
