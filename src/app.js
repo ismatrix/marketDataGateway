@@ -65,7 +65,7 @@ async function main() {
     const sslCreds = grpc.ServerCredentials.createSsl(
       null,
       [{ private_key: sslServerKey, cert_chain: sslServerCrt }],
-      true
+      true,
     );
 
     const server = new grpc.Server();
@@ -77,15 +77,16 @@ async function main() {
     );
 
     // load unique marketData interface service
-    for (const mdConfig of config.marketDataConfigs) {
+    config.marketDataConfigs.forEach((mdConfig) => {
       debug('config %o', config);
       server.addProtoService(
         marketDataProto[mdConfig.serviceName][upperFirst(mdConfig.serviceName)].service,
         marketDataGatewayGrpc[mdConfig.serviceName],
       );
-    }
+    });
 
     server.bind(`${config.grpcConfig.ip}:${config.grpcConfig.port}`, sslCreds);
+    server.bind(`${config.grpcConfig.ip}:60052`, grpc.ServerCredentials.createInsecure());
     server.start();
   } catch (error) {
     logError('main(): %o', error);

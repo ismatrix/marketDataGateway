@@ -69,7 +69,7 @@ async function subscribeStream(subID, sessionID) {
   try {
     const subscribeStreamResult =
       await redis.saddAsync(redis.join(redis.SUBID_SESSIONIDS, subID), sessionID);
-    if (subscribeStreamResult) debug('added %o to %o', sessionID, `${redis.SUBID_SESSIONIDS}:${subID}`);
+    if (subscribeStreamResult) debug('added %o to %o', sessionID, redis.join(redis.SUBID_SESSIONIDS, subID));
 
     return subscribeStreamResult;
   } catch (error) {

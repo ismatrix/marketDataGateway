@@ -12,6 +12,7 @@ const sslCaCrt = fs.readFileSync(sslCaCrtPath);
 const md = createGrpcClient({
   serviceName: 'smartwinFuturesMd',
   server: {
+    // ip: 'markets.invesmart.net',
     ip: 'localhost',
     port: '50052',
   },
@@ -32,11 +33,11 @@ const md = createGrpcClient({
 // ;
 
 md.getPastBarStream({
-  symbol: 'ag1705',
+  symbol: 'IF1608',
   dataType: 'bar',
   resolution: 'day',
-  startDate: '2017-01-16',
-  endDate: '2017-01-26',
+  startDate: '2016-06-27',
+  endDate: '2016-08-19',
 })
 .on('data', data => debug('data %o', data))
 .on('end', () => debug('end'))

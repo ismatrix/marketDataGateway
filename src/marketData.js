@@ -78,9 +78,9 @@ export default function createMarketData(config) {
     const dataTypeToDataFeedName = (dataType) => {
       try {
         const dataFeedConfigs = getOwnDataFeeds().map(conf => conf.config);
-        for (const dataFeedConfig of dataFeedConfigs) {
+        dataFeedConfigs.forEach((dataFeedConfig) => {
           if (dataFeedConfig.dataTypes.includes(dataType)) return dataFeedConfig.name;
-        }
+        });
         throw new Error('dataType not found in own dataFeed configs');
       } catch (error) {
         logError('dataTypeToDataFeedName(): %o', error);

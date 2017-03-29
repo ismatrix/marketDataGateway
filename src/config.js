@@ -77,8 +77,14 @@ const developmentConfig = Object.assign({},
   productionConfig,
   {
     mongodbURL: 'mongodb://127.0.0.1:27018/smartwin',
-  }
+  },
 );
+developmentConfig.marketDataConfigs
+  .filter(element => element.serviceName === 'smartwinFuturesMd')
+  .forEach(elem =>
+    elem.dataFeeds.filter(el => el.name === 'mongodb').forEach((e) => { e.server.port = '27018'; }),
+  )
+  ;
 
 const config = process.env.NODE_ENV === 'development' ? developmentConfig : productionConfig;
 

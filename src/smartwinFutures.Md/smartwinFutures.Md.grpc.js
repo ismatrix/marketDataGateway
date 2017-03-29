@@ -33,12 +33,12 @@ redisSub.on('message', async (room, message) => {
       const subscribersSessionIDs =
         await redis.smembersAsync(redis.join(redis.SUBID_SESSIONIDS, subID));
 
-      for (const stream of grpcClientStreams) {
+      grpcClientStreams.forEach((stream) => {
         if (
           stream.dataType === dataType
           && subscribersSessionIDs.includes(stream.sessionID)
         ) stream.write(JSON.parse(message));
-      }
+      });
     } else if (keyNamespace === redis.SUBSINFO_SUBIDS && key === redis.GLOBALLYUNUSED) {
       const [dataFeedName] = redis.getFullKeyParts(room, 'dataFeedName');
       const theDataFeed = dataFeeds.getDataFeed(dataFeedName);
@@ -332,9 +332,9 @@ async function getLastMarketDatas(call, callback) {
     const betterCallID = createBetterCallID(callID, user.userid);
     debug('%o(): grpcCall from callID: %o', methodName, betterCallID);
 
-    for (const sub of subs) {
+    subs.forEach((sub) => {
       if (sub.dataType !== dataType) throw new Error(`cannot ask for dataType: "${sub.dataType}" with method: "${methodName}"`);
-    }
+    });
 
     if (subs.length === 0) return callback(null, {});
 
