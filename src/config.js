@@ -46,6 +46,7 @@ const productionConfig = {
             { dataType: 'marketDepth', resolution: 'snapshot', mode: 'live' },
             { dataType: 'ticker', resolution: 'snapshot', mode: 'live' },
             { dataType: 'bar', resolution: 'minute', mode: 'live' },
+            { dataType: 'dayBar', resolution: 'day', mode: 'live' },
           ],
           server: {
             ip: '120.76.98.94',
@@ -57,7 +58,7 @@ const productionConfig = {
           dataTypes: ['dayBar', 'bar'],
           dataDescriptions: [
             { dataType: 'dayBar', resolution: 'snapshot', mode: 'live' },
-            { dataType: 'dayBar', resolution: 'snapshot', mode: 'past' },
+            { dataType: 'dayBar', resolution: 'day', mode: 'past' },
             { dataType: 'bar', resolution: 'day', mode: 'past' },
           ],
           dbName: 'smartwin',
