@@ -32,14 +32,23 @@ const md = createGrpcClient({
 // .on('error', error => debug('error %o', error))
 // ;
 
-md.getPastBarStream({
-  symbol: 'IF1608',
-  dataType: 'bar',
-  resolution: 'day',
-  startDate: '2016-06-27',
-  endDate: '2016-08-19',
-})
-.on('data', data => debug('data %o', data))
+// md.getPastDayBarStream({
+//   symbol: 'IF1608',
+//   dataType: 'dayBar',
+//   resolution: 'day',
+//   startDate: '2016-06-27',
+//   endDate: '2016-08-19',
+// })
+// .on('data', data => debug('data %o', data))
+// .on('end', () => debug('end'))
+// .on('error', error => debug('error %o', error))
+// ;
+
+md.getDayBarStream({})
+.on('data', data => debug('dayBar %o', data))
 .on('end', () => debug('end'))
 .on('error', error => debug('error %o', error))
 ;
+
+md.subscribeMarketData({ symbol: 'IF1608', resolution: 'snapshot', dataType: 'dayBar' });
+md.subscribeMarketData({ symbol: 'IF1708', resolution: 'day', dataType: 'dayBar' });

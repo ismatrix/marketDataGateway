@@ -220,9 +220,9 @@ babel-core@^6.24.1:
     slash "^1.0.0"
     source-map "^0.5.0"
 
-babel-eslint@^7.2.1:
-  version "7.2.1"
-  resolved "http://registry.npm.taobao.org/babel-eslint/download/babel-eslint-7.2.1.tgz#079422eb73ba811e3ca0865ce87af29327f8c52f"
+babel-eslint@^7.2.2:
+  version "7.2.2"
+  resolved "http://registry.npm.taobao.org/babel-eslint/download/babel-eslint-7.2.2.tgz#0da2cbe6554fd0fb069f19674f2db2f9c59270ff"
   dependencies:
     babel-code-frame "^6.22.0"
     babel-traverse "^6.23.1"
@@ -347,21 +347,7 @@ babel-template@^6.24.1:
     babylon "^6.11.0"
     lodash "^4.2.0"
 
-babel-traverse@^6.23.1:
-  version "6.23.1"
-  resolved "http://registry.npm.taobao.org/babel-traverse/download/babel-traverse-6.23.1.tgz#d3cb59010ecd06a97d81310065f966b699e14f48"
-  dependencies:
-    babel-code-frame "^6.22.0"
-    babel-messages "^6.23.0"
-    babel-runtime "^6.22.0"
-    babel-types "^6.23.0"
-    babylon "^6.15.0"
-    debug "^2.2.0"
-    globals "^9.0.0"
-    invariant "^2.2.0"
-    lodash "^4.2.0"
-
-babel-traverse@^6.24.1:
+babel-traverse@^6.23.1, babel-traverse@^6.24.1:
   version "6.24.1"
   resolved "http://registry.npm.taobao.org/babel-traverse/download/babel-traverse-6.24.1.tgz#ab36673fd356f9a0948659e7b338d5feadb31695"
   dependencies:
@@ -375,16 +361,7 @@ babel-traverse@^6.24.1:
     invariant "^2.2.0"
     lodash "^4.2.0"
 
-babel-types@^6.23.0:
-  version "6.23.0"
-  resolved "http://registry.npm.taobao.org/babel-types/download/babel-types-6.23.0.tgz#bb17179d7538bad38cd0c9e115d340f77e7e9acf"
-  dependencies:
-    babel-runtime "^6.22.0"
-    esutils "^2.0.2"
-    lodash "^4.2.0"
-    to-fast-properties "^1.0.1"
-
-babel-types@^6.24.1:
+babel-types@^6.23.0, babel-types@^6.24.1:
   version "6.24.1"
   resolved "http://registry.npm.taobao.org/babel-types/download/babel-types-6.24.1.tgz#a136879dc15b3606bda0d90c1fc74304c2ff0975"
   dependencies:
@@ -1163,9 +1140,19 @@ graceful-fs@^4.1.2, graceful-fs@^4.1.4:
   version "1.0.1"
   resolved "http://registry.npm.taobao.org/graceful-readlink/download/graceful-readlink-1.0.1.tgz#4cafad76bc62f02fa039b2f94e9a3dd3a391a725"
 
-grpc@^1.1.2, grpc@^1.2.3:
+grpc@^1.2.0:
   version "1.2.3"
   resolved "http://registry.npm.taobao.org/grpc/download/grpc-1.2.3.tgz#60b4b533a8783fa0b389b6cfa5d5bee34786049f"
+  dependencies:
+    arguejs "^0.2.3"
+    lodash "^4.15.0"
+    nan "^2.0.0"
+    node-pre-gyp "^0.6.0"
+    protobufjs "^5.0.0"
+
+grpc@^1.2.4:
+  version "1.2.4"
+  resolved "http://registry.npm.taobao.org/grpc/download/grpc-1.2.4.tgz#ef0c8c708245d8fc797e39aa330dce409b3dd03c"
   dependencies:
     arguejs "^0.2.3"
     lodash "^4.15.0"
@@ -2232,14 +2219,14 @@ supports-color@^2.0.0:
     lodash "^4.17.4"
     moment "^2.17.1"
 
-"sw-grpc-client@git+ssh://git@code.invesmart.net:8800/npm/sw-grpc-client.git#v1.1.27":
-  version "1.1.27"
-  resolved "git+ssh://git@code.invesmart.net:8800/npm/sw-grpc-client.git#caf7aaa65bab3bc14e54c0c0c93900996a42b359"
+"sw-grpc-client@git+ssh://git@code.invesmart.net:8800/npm/sw-grpc-client.git#v1.1.29":
+  version "1.1.29"
+  resolved "git+ssh://git@code.invesmart.net:8800/npm/sw-grpc-client.git#e93e6c7bc1efa30d17606baa7aaa3e2ea087255c"
   dependencies:
     babel-register "^6.24.0"
     bluebird "^3.5.0"
-    debug "^2.6.2"
-    grpc "^1.1.2"
+    debug "^2.6.3"
+    grpc "^1.2.0"
     lodash "^4.17.4"
     uuid "^3.0.1"
 
