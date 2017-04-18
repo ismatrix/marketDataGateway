@@ -58,6 +58,7 @@ const productionConfig = {
           dataTypes: ['dayBar', 'bar'],
           dataDescriptions: [
             { dataType: 'dayBar', resolution: 'snapshot', mode: 'live' },
+            { dataType: 'dayBar', resolution: 'snapshot', mode: 'past' },
             { dataType: 'dayBar', resolution: 'day', mode: 'past' },
             { dataType: 'bar', resolution: 'day', mode: 'past' },
           ],
