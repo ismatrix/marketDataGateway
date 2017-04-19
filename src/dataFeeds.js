@@ -18,7 +18,7 @@ function addPublisherListenerToDataFeed(dataFeed) {
     const liveDataTypeNames = dataFeed.getLiveDataTypeNames();
     debug('liveDataTypeNames %o', liveDataTypeNames);
 
-    for (const dataType of liveDataTypeNames) {
+    liveDataTypeNames.forEach((dataType) => {
       const listenerCount = dataFeed.listenerCount(dataType);
       debug('%o listener(s) of %o event', listenerCount, dataType);
 
@@ -40,7 +40,7 @@ function addPublisherListenerToDataFeed(dataFeed) {
           .on('error', error => logError('dataFeed.on(error): %o', error))
           ;
       }
-    }
+    });
   } catch (error) {
     logError('addPublisherListenerToDataFeed(): %o', error);
     throw error;
