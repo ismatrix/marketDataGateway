@@ -238,9 +238,17 @@ async function getMarketDataStream(stream) {
           logError('stream.on(cancelled): %o', error);
         }
       })
-      .on('error', (error) => {
+      .on('error', async (error) => {
         logError('stream.on(error): callID: %o, %o', betterCallID, error);
-        grpcClientStreams.delete(stream);
+        try {
+          grpcClientStreams.delete(stream);
+          await redis.sremAsync(
+            redis.join(redis.DATATYPE_SESSIONIDS, stream.dataType), stream.sessionID);
+          await subscriber.removeSessionIDFromAllSubIDsByDataType(
+            stream.sessionID, stream.dataType);
+        } catch (err) {
+          logError('stream.on(error) cleaning: %o', err);
+        }
       })
       ;
 
