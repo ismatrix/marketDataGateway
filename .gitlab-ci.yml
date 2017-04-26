@@ -38,3 +38,4 @@ deploy:
     - master
   tags:
     - deploy-ssh
+    - ssh-backtest
