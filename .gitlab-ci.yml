@@ -8,6 +8,7 @@ stages:
   - build
   - test
   - deploy
+  - deploy2
 
 build:
   stage: build
@@ -39,7 +40,7 @@ deploy:
   tags:
     - deploy-ssh
 
-deploy:
+deploy2:
   stage: deploy
   script:
     - cd /home/ops/production/marketDataGateway
