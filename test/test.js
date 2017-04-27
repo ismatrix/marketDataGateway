@@ -30,7 +30,7 @@ const tickerSubscriptions = [
     { symbol: 'ag1712', resolution: 'snapshot', dataType: 'ticker' },
 ];
 const dayBarSubscriptions = [
-    { symbol: 'ag1712', resolution: 'snapshot', dataType: 'dayBar' },
+    { symbol: 'ag1712', resolution: 'day', dataType: 'dayBar' },
 ];
 
 describe('#getLiveStream()', () => {
@@ -54,19 +54,6 @@ describe('#getPastStream()', () => {
     .on('error', error => reject(error))
     ;
   }));
-  it('getPastDayBarStream', () => new Promise((resolve, reject) => {
-    md.getPastBarStream({
-      symbol: 'ag1705',
-      dataType: 'bar',
-      resolution: 'day',
-      startDate: '2017-01-16',
-      endDate: '2017-01-16',
-    })
-    .on('data', () => {})
-    .on('end', () => resolve())
-    .on('error', error => reject(error))
-    ;
-  }));
   it('getPastTickerStream', () => new Promise((resolve, reject) => {
     md.getPastTickerStream({
       symbol: 'IF1608',
@@ -84,7 +71,7 @@ describe('#getPastStream()', () => {
     md.getPastDayBarStream({
       symbol: 'IF1608',
       dataType: 'dayBar',
-      resolution: 'snapshot',
+      resolution: 'day',
       startDate: '2016-08-01',
       endDate: '2016-08-01',
     })
