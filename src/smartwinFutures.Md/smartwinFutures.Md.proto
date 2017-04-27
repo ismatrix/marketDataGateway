@@ -192,13 +192,13 @@ message DayBar {
   int32 volume = 11; // 成交量
   double turnover = 12; // 成交额
   double settlement = 13; // 结算价
-  double openinterest = 14; // 持仓量 未平仓合约
-  double presettlement = 15; // 上次结算价
-  double preclose = 16; // 昨收盘
-  double preoopeninterest = 17; // 昨持仓量
+  double openInterest = 14; // 持仓量 未平仓合约
+  double preSettlement = 15; // 上次结算价
+  double preClose = 16; // 昨收盘
+  double preoOpenInterest = 17; // 昨持仓量
   double price = 18; // 当前价
-  double upperlimit = 19; // 涨停价
-  double lowerlimit = 20; // 跌停价
+  double upperLimit = 19; // 涨停价
+  double lowerLimit = 20; // 跌停价
 }
 
 message SubscribableDataDescriptionsResponse {

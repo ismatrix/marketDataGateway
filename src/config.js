@@ -33,6 +33,7 @@ const productionConfig = {
           dataDescriptions: [
             { dataType: 'ticker', resolution: 'snapshot', mode: 'past' },
             { dataType: 'bar', resolution: 'minute', mode: 'past' },
+            { dataType: 'dayBar', resolution: 'day', mode: 'past' },
           ],
           server: {
             ip: '120.76.98.94',
@@ -51,23 +52,6 @@ const productionConfig = {
           server: {
             ip: '120.76.98.94',
             port: '10001',
-          },
-        },
-        {
-          name: 'mongodb',
-          dataTypes: ['dayBar', 'bar'],
-          dataDescriptions: [
-            { dataType: 'dayBar', resolution: 'snapshot', mode: 'live' },
-            { dataType: 'dayBar', resolution: 'snapshot', mode: 'past' },
-            { dataType: 'dayBar', resolution: 'day', mode: 'past' },
-            { dataType: 'bar', resolution: 'day', mode: 'past' },
-          ],
-          dbName: 'smartwin',
-          collectionName: 'DAYBAR',
-          queryInterval: 5000,
-          server: {
-            ip: '127.0.0.1',
-            port: '27017',
           },
         },
       ],
