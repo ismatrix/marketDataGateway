@@ -143,6 +143,7 @@ message MarketDepth {
   int32 askVolume1 = 27;
   double averagePrice = 28;
   string actionDay = 29;
+  string timestamp = 30;
 }
 
 message Bar {
