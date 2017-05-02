@@ -436,7 +436,6 @@ async function getInstruments(call, callback) {
     const icePast = dataFeeds.getDataFeed('icePast');
 
     const dbInstruments = await icePast.getInstruments(call.request);
-    delete dbInstruments._id;
 
     // db instrumentname === null not compatible with proto3
     const instruments = dbInstruments.map((ins) => {

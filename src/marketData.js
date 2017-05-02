@@ -20,9 +20,11 @@ export default function createMarketData(config) {
 
     const updateMemoryInstruments = async () => {
       try {
-        const dbInstruments = await crud.instrument.getList({
-          istrading: [1],
-          poductclass: ['1'],
+        const icePast = dataFeeds.getDataFeed('icePast');
+
+        const dbInstruments = await icePast.getInstruments({
+          isTrading: [1],
+          productClasses: ['1'],
         });
         debug('dbInstruments.length: %o', dbInstruments.length);
         // db instrumentname === null not compatible with proto3
@@ -40,13 +42,13 @@ export default function createMarketData(config) {
 
     const init = async () => {
       try {
-        await updateMemoryInstruments();
         const addDataFeedPromises = config.dataFeeds
           .map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig).catch(error => logError('failed adding dataFeed %o with error: %o', dataFeedConfig.name, error)))
           ;
 
         debug('connectPromises %o', addDataFeedPromises);
         const initReport = await Promise.all(addDataFeedPromises);
+        await updateMemoryInstruments();
         return initReport;
       } catch (error) {
         logError('init(): %o', error);
