@@ -1,7 +1,6 @@
 import createDebug from 'debug';
 import { upperFirst, difference } from 'lodash';
 import grpc from 'grpc';
-import crud from 'sw-mongodb-crud';
 import can from 'sw-can';
 import { redis, redisSub } from '../redis';
 import marketDatas from '../marketDatas';
@@ -434,17 +433,10 @@ async function getInstruments(call, callback) {
     const betterCallID = createBetterCallID(callID, user.userid);
     debug('getInstruments() request: %o, grpcCall from callID: %o', call.request, betterCallID);
 
-    const req = call.request;
-    const filter = {};
+    const icePast = dataFeeds.getDataFeed('icePast');
 
-    if (req.symbols.length && !req.symbols.includes('all')) filter.instruments = req.symbols;
-    if (req.products.length && !req.products.includes('all')) filter.product = req.products;
-    if (req.exchanges.length && !req.exchanges.includes('all')) filter.exchange = req.exchanges;
-    if (req.ranks.length && !req.ranks.includes('all')) filter.rank = req.ranks;
-    if (req.productClasses.length && !req.productClasses.includes('all')) filter.productclass = req.productClasses;
-    if (req.isTrading.length && !req.isTrading.includes('all')) filter.istrading = req.isTrading;
-
-    const dbInstruments = await crud.instrument.getList(filter);
+    const dbInstruments = await icePast.getInstruments(call.request);
+    delete dbInstruments._id;
 
     // db instrumentname === null not compatible with proto3
     const instruments = dbInstruments.map((ins) => {
