@@ -36,7 +36,7 @@
     "node-schedule": "^1.2.1",
     "redis": "^2.7.1",
     "sw-can": "git+ssh://git@code.invesmart.net:8800/npm/sw-can.git#v1.0.3",
-    "sw-datafeed-icelive": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icelive.git#v1.0.19",
+    "sw-datafeed-icelive": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icelive.git#v1.0.20",
     "sw-datafeed-icepast": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icepast.git#v1.0.21",
     "sw-datafeed-mongodb": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-mongodb.git#v1.0.5",
     "sw-grpc-client": "git+ssh://git@code.invesmart.net:8800/npm/sw-grpc-client.git#v1.1.32",
