@@ -30,6 +30,8 @@ export default function createMarketData(config) {
         // db instrumentname === null not compatible with proto3
         memoryInstruments = dbInstruments.map((ins) => {
           if (ins.instrumentname === null) delete ins.instrumentname;
+          delete ins._id;
+          delete ins.updatedate;
           return ins;
         });
         debug('memoryInstruments.length: %o', memoryInstruments.length);
