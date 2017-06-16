@@ -48,11 +48,11 @@ deploy2:
     - git reset --hard HEAD
     - git clean -f -d
     - git pull
-    - npm install --production --registry=https://registry.npm.taobao.org
-    - rm -Rf dist
-    - npm run compile
     - rm -rf /home/ops/production/marketDataGateway/crt
     - ln -s /home/ops/victor/crt /home/ops/production/marketDataGateway/crt
+    - npm install --registry=https://registry.npm.taobao.org
+    - rm -Rf dist
+    - npm run compile
     - pm2 restart marketDataGateway
   only:
     - master
