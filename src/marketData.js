@@ -1,6 +1,5 @@
 import createDebug from 'debug';
 import { reduce } from 'lodash';
-import crud from 'sw-mongodb-crud';
 import schedule from 'node-schedule';
 import dataFeeds from './dataFeeds';
 
