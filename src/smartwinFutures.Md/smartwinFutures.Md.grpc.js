@@ -442,6 +442,7 @@ async function getInstruments(call, callback) {
       if (ins.instrumentname === null) delete ins.instrumentname;
       delete ins._id;
       delete ins.updatedate;
+      delete ins.update_date;
       return ins;
     });
 
