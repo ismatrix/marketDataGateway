@@ -135,7 +135,7 @@ async function removeOrphanSessionIDs(openStreamSessionIDs) {
 
 async function removeSessionIDFromAllSubIDsByDataType(sessionID, dataType) {
   try {
-    const allSubIDSessionIDsKeys = await redis.keysAsync(`${redis.SUBID_SESSIONIDS}:*`);
+    const allSubIDSessionIDsKeys = await redis.keysAsync(redis.join(redis.SUBID_SESSIONIDS, '*'));
     const allDataTypeFilteredKeys = allSubIDSessionIDsKeys.filter(elem => elem.includes(dataType));
 
     const isRemovedSessionID = await redis
