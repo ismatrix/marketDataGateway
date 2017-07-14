@@ -5,21 +5,8 @@ cache:
     - node_modules/
 
 stages:
-  - build
-  - test
   - deploy
   - deploy2
-
-build:
-  stage: build
-  script:
-    - echo "StrictHostKeyChecking no " > /root/.ssh/config
-    - npm install --production --registry=https://registry.npm.taobao.org
-    - npm run compile
-  only:
-    - master
-  tags:
-    - build-node
 
 deploy:
   stage: deploy
