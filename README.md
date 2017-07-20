@@ -9,7 +9,6 @@ npm install
 
 ## Prod
 ```
-npm run compile
 NODE_ENV=production DEBUG_FD=1 DEBUG=*,-babel DEBUG_COLORS=true pm2 start src/index.js --log-date-format="MM-DD HH:mm:ss" --name marketDataGateway -- --credentials-name markets.invesmart.net
 ```
 
