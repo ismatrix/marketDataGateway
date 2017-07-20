@@ -1,6 +1,7 @@
 import createDebug from 'debug';
 import createMarketData from './marketData';
 
+// 管理 marketData 在一个队列里面
 const logError = createDebug('app:marketDatas:error');
 logError.log = console.error.bind(console);
 
@@ -50,7 +51,7 @@ function getMarketDatasConfigs() {
         dataTypes: df.dataTypes,
         server: df.server,
       })),
-    })
+    }),
     );
     return marketDatasConfigs;
   } catch (error) {

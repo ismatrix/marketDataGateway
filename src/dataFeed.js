@@ -3,6 +3,7 @@ import createIceLiveDataFeed from 'sw-datafeed-icelive';
 import createIcePastDataFeed from 'sw-datafeed-icepast';
 import createMongodbDataFeed from 'sw-datafeed-mongodb';
 
+// 封装链接
 const logError = createDebug('app:dataFeed:error');
 logError.log = console.error.bind(console);
 

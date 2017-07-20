@@ -3,6 +3,7 @@ import createRedis from 'redis';
 import bluebird from 'bluebird';
 import config from './config';
 
+// redis的方法
 const debug = createDebug('app:redis');
 const logError = createDebug('app:redis:error');
 logError.log = console.error.bind(console);

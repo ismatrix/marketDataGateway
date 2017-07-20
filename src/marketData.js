@@ -3,6 +3,7 @@ import { reduce } from 'lodash';
 import schedule from 'node-schedule';
 import dataFeeds from './dataFeeds';
 
+// 封装ｄａｔａｆｅｅｄｓ
 const debug = createDebug('app:marketData');
 const logError = createDebug('app:marketData:error');
 logError.log = console.error.bind(console);

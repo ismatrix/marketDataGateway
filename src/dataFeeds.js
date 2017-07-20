@@ -3,6 +3,7 @@ import createDataFeed from './dataFeed';
 import subscriber from './subscriber';
 import { redis } from './redis';
 
+// 管理datafeed在一个队列里面
 const debug = createDebug('app:dataFeeds');
 const logError = createDebug('app:dataFeeds:error');
 logError.log = console.error.bind(console);
