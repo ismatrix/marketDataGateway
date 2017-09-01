@@ -1,4 +1,3 @@
-import createDebug from 'debug';
 import { upperFirst, difference } from 'lodash';
 import grpc from 'grpc';
 import can from 'sw-can';
@@ -6,10 +5,7 @@ import { redis, redisSub } from '../redis';
 import marketDatas from '../marketDatas';
 import dataFeeds from '../dataFeeds';
 import subscriber from '../subscriber';
-
-const debug = createDebug('app:smartwinFuturesMd.grpc');
-const logError = createDebug('app:smartwinFuturesMd.grpc:error');
-logError.log = console.error.bind(console);
+import logger from 'sw-common'
 
 const serviceName = 'smartwinFuturesMd';
 
@@ -47,10 +43,10 @@ redisSub.on('message', async (room, message) => {
 
       const isGloballyRemoved = await redis.sremAsync(
         redis.join(redis.SUBSINFO_SUBIDS, redis.GLOBALLYUNUSED), message);
-      debug('isGloballyRemoved %o', isGloballyRemoved);
+      logger.info('isGloballyRemoved %j', isGloballyRemoved);
     }
   } catch (error) {
-    logError('redisSub.on(message): %o', error);
+    logger.error('redisSub.on(message): %j', error);
   }
 });
 
@@ -71,25 +67,25 @@ async function getPastMarketDataStream(stream) {
     const user = await can.grpc(stream, 'get', 'smartwinFuturesMd');
 
     const betterCallID = createBetterCallID(callID, user.userid, stream.request.dataType);
-    debug('getPastMarketDataStream(): grpcCall from callID: %o', betterCallID);
-    debug('getPastMarketDataStream(): grpcCall request: %o', stream.request);
+    logger.info('getPastMarketDataStream(): grpcCall from callID: %j', betterCallID);
+    logger.info('getPastMarketDataStream(): grpcCall request: %j', stream.request);
 
     const marketData = marketDatas.getMarketData(serviceName);
     const theDataFeed = marketData.getDataFeedBySubscription(stream.request);
 
     theDataFeed.getPastMarketDataStream(stream.request)
       .on('error', (error) => {
-        logError('getPastMarketDataStream.on(error): callID: %o, %o', betterCallID, error);
+        logger.error('getPastMarketDataStream.on(error): callID: %j, %j', betterCallID, error);
         stream.emit('error', error);
       })
-      .on('end', () => debug('end of pastMarketData stream with callID: %o', betterCallID))
+      .on('end', () => logger.info('end of pastMarketData stream with callID: %j', betterCallID))
       .pipe(stream)
       .on('error', (error) => {
-        logError('stream.on(error): callID: %o, %o', betterCallID, error);
+        logger.error('stream.on(error): callID: %j, %j', betterCallID, error);
       })
       ;
   } catch (error) {
-    logError('getPastMarketDataStream(): callID: %o, %o', callID, error);
+    logger.error('getPastMarketDataStream(): callID: %j, %j', callID, error);
     throw error;
   }
 }
@@ -99,7 +95,7 @@ async function getPastMarketDepthStream(stream) {
     stream.request.dataType = 'marketDepth';
     await getPastMarketDataStream(stream);
   } catch (error) {
-    logError('getPastMarketDepthStream(): %o', error);
+    logger.error('getPastMarketDepthStream(): %j', error);
     stream.emit('error', error);
   }
 }
@@ -109,7 +105,7 @@ async function getPastBarStream(stream) {
     stream.request.dataType = 'bar';
     await getPastMarketDataStream(stream);
   } catch (error) {
-    logError('getPastBarStream(): %o', error);
+    logger.error('getPastBarStream(): %j', error);
     stream.emit('error', error);
   }
 }
@@ -119,7 +115,7 @@ async function getPastTickerStream(stream) {
     stream.request.dataType = 'ticker';
     await getPastMarketDataStream(stream);
   } catch (error) {
-    logError('getPastTickerStream(): %o', error);
+    logger.error('getPastTickerStream(): %j', error);
     stream.emit('error', error);
   }
 }
@@ -129,7 +125,7 @@ async function getPastDayBarStream(stream) {
     stream.request.dataType = 'dayBar';
     await getPastMarketDataStream(stream);
   } catch (error) {
-    logError('getPastDayBarStream(): %o', error);
+    logger.error('getPastDayBarStream(): %j', error);
     stream.emit('error', error);
   }
 }
@@ -143,7 +139,7 @@ async function subscribeMarketData(call, callback) {
 
     const sessionID = call.metadata.get('sessionid')[0];
     const newSub = call.request;
-    debug('subscribeMarketData() newSub: %o, from callID: %o', newSub, betterCallID);
+    logger.info('subscribeMarketData() newSub: %j, from callID: %j', newSub, betterCallID);
 
     const marketData = marketDatas.getMarketData(serviceName);
 
@@ -157,7 +153,7 @@ async function subscribeMarketData(call, callback) {
 
     callback(null, newSub);
   } catch (error) {
-    logError('subscribeMarketData(): callID: %o, %o', callID, error);
+    logger.error('subscribeMarketData(): callID: %j, %j', callID, error);
     callback(error);
   }
 }
@@ -171,7 +167,7 @@ async function unsubscribeMarketData(call, callback) {
 
     const sessionID = call.metadata.get('sessionid')[0];
     const subToRemove = call.request;
-    debug('unsubscribeMarketData() subToRemove: %o, from callID: %o', subToRemove, betterCallID);
+    logger.info('unsubscribeMarketData() subToRemove: %j, from callID: %j', subToRemove, betterCallID);
 
     const marketData = marketDatas.getMarketData(serviceName);
     const theDataFeed = marketData.getDataFeedBySubscription(subToRemove);
@@ -193,7 +189,7 @@ async function unsubscribeMarketData(call, callback) {
 
     callback(null, subToRemove);
   } catch (error) {
-    logError('unsubscribeMarketData(): callID: %o, %o', callID, error);
+    logger.error('unsubscribeMarketData(): callID: %j, %j', callID, error);
     callback(error);
   }
 }
@@ -206,7 +202,7 @@ async function getMarketDataStream(stream) {
     stream.sessionID = stream.metadata.get('sessionid')[0];
 
     const betterCallID = createBetterCallID(callID, stream.dataType, user.userid);
-    debug('getMarketDataStream(): grpcCall from callID: %o', betterCallID);
+    logger.info('getMarketDataStream(): grpcCall from callID: %j', betterCallID);
 
     grpcClientStreams.forEach((existingStream) => {
       if (
@@ -218,7 +214,7 @@ async function getMarketDataStream(stream) {
     stream
       .on('cancelled', async () => {
         try {
-          logError('stream.on(cancelled): callID: %o', betterCallID);
+          logger.error('stream.on(cancelled): callID: %j', betterCallID);
           grpcClientStreams.delete(stream);
           await redis.sremAsync(
             redis.join(redis.DATATYPE_SESSIONIDS, stream.dataType), stream.sessionID);
@@ -234,11 +230,11 @@ async function getMarketDataStream(stream) {
           // subIDToGloballyRemove);
           // }
         } catch (error) {
-          logError('stream.on(cancelled): %o', error);
+          logger.error('stream.on(cancelled): %j', error);
         }
       })
       .on('error', async (error) => {
-        logError('stream.on(error): callID: %o, %o', betterCallID, error);
+        logger.error('stream.on(error): callID: %j, %j', betterCallID, error);
         try {
           grpcClientStreams.delete(stream);
           await redis.sremAsync(
@@ -246,7 +242,7 @@ async function getMarketDataStream(stream) {
           await subscriber.removeSessionIDFromAllSubIDsByDataType(
             stream.sessionID, stream.dataType);
         } catch (err) {
-          logError('stream.on(error) cleaning: %o', err);
+          logger.error('stream.on(error) cleaning: %j', err);
         }
       })
       ;
@@ -268,7 +264,7 @@ async function getMarketDataStream(stream) {
     const globalSubIDs = await redis.smembersAsync(
       redis.join(redis.SUBSINFO_SUBIDS, redis.GLOBALLYSUBSCRIBED));
     const needSubscribeSubIDs = difference(streamExistingSubIDs, globalSubIDs);
-    debug('existing subIDs that need to be subscribed: %o', needSubscribeSubIDs);
+    logger.info('existing subIDs that need to be subscribed: %j', needSubscribeSubIDs);
 
     needSubscribeSubIDs.forEach(async (newSubID) => {
       try {
@@ -280,11 +276,11 @@ async function getMarketDataStream(stream) {
           redis.join(redis.SUBSINFO_SUBIDS, redis.GLOBALLYSUBSCRIBED), newSubID);
         await redisSub.subscribeAsync(redis.join(redis.SUBID_MD, newSubID));
       } catch (error) {
-        logError('needSubscribeSubIDs.forEach(): %o', error);
+        logger.error('needSubscribeSubIDs.forEach(): %j', error);
       }
     });
   } catch (error) {
-    logError('getMarketDataStream(): callID: %o, %o', callID, error);
+    logger.error('getMarketDataStream(): callID: %j, %j', callID, error);
     throw error;
   }
 }
@@ -294,7 +290,7 @@ async function getMarketDepthStream(stream) {
     stream.dataType = 'marketDepth';
     await getMarketDataStream(stream);
   } catch (error) {
-    logError('getMarketDepthStream(): %o', error);
+    logger.error('getMarketDepthStream(): %j', error);
     stream.emit('error', error);
   }
 }
@@ -304,7 +300,7 @@ async function getBarStream(stream) {
     stream.dataType = 'bar';
     await getMarketDataStream(stream);
   } catch (error) {
-    logError('getBarStream(): %o', error);
+    logger.error('getBarStream(): %j', error);
     stream.emit('error', error);
   }
 }
@@ -314,7 +310,7 @@ async function getTickerStream(stream) {
     stream.dataType = 'ticker';
     await getMarketDataStream(stream);
   } catch (error) {
-    logError('getTickerStream(): %o', error);
+    logger.error('getTickerStream(): %j', error);
     stream.emit('error', error);
   }
 }
@@ -324,7 +320,7 @@ async function getDayBarStream(stream) {
     stream.dataType = 'dayBar';
     await getMarketDataStream(stream);
   } catch (error) {
-    logError('getDayBarStream(): %o', error);
+    logger.error('getDayBarStream(): %j', error);
     stream.emit('error', error);
   }
 }
@@ -337,7 +333,7 @@ async function getLastMarketDatas(call, callback) {
     const methodName = `getLast${upperFirst(dataType)}s`;
     const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
     const betterCallID = createBetterCallID(callID, user.userid);
-    debug('%o(): grpcCall from callID: %o', methodName, betterCallID);
+    logger.info('%j(): grpcCall from callID: %j', methodName, betterCallID);
 
     subs.forEach((sub) => {
       if (sub.dataType !== dataType) throw new Error(`cannot ask for dataType: "${sub.dataType}" with method: "${methodName}"`);
@@ -351,12 +347,12 @@ async function getLastMarketDatas(call, callback) {
       const dataFeedName = marketData.getDataFeedBySubscription(sub).config.name;
       return subscriber.subToSubID(dataFeedName, sub);
     });
-    debug('subIDs %o', subIDs);
+    logger.info('subIDs %j', subIDs);
 
     const lastRedisMarketDatas =
       await redis.mgetAsync(subIDs.map(subID => redis.join(redis.SUBID_LASTMD, subID)));
     const lastMarketDatas = lastRedisMarketDatas.filter(md => !!md).map(md => JSON.parse(md));
-    debug('lastMarketDatas.length %o', lastMarketDatas.length);
+    logger.info('lastMarketDatas.length %j', lastMarketDatas.length);
 
     const lastMarketDatasResponse = {};
     lastMarketDatasResponse[`${dataType}s`] = lastMarketDatas;
@@ -366,7 +362,7 @@ async function getLastMarketDatas(call, callback) {
     const globalSubIDs =
       await redis.smembersAsync(redis.join(redis.SUBSINFO_SUBIDS, redis.GLOBALLYSUBSCRIBED));
     const needSubscribeSubIDs = difference(subIDs, globalSubIDs);
-    if (needSubscribeSubIDs.length > 0) debug('existing subIDs that need to be subscribed: %o', needSubscribeSubIDs);
+    if (needSubscribeSubIDs.length > 0) logger.info('existing subIDs that need to be subscribed: %j', needSubscribeSubIDs);
 
     needSubscribeSubIDs.forEach(async (newSubID) => {
       try {
@@ -377,11 +373,11 @@ async function getLastMarketDatas(call, callback) {
 
         await subscriber.subscribeDataFeed(newSub, theDataFeed);
       } catch (error) {
-        logError('needSubscribeSubIDs.forEach(): %o', error);
+        logger.error('needSubscribeSubIDs.forEach(): %j', error);
       }
     });
   } catch (error) {
-    logError('getLastMarketDatas(): callID: %o, %o', callID, error);
+    logger.error('getLastMarketDatas(): callID: %j, %j', callID, error);
     callback(error);
   }
 }
@@ -391,7 +387,7 @@ async function getLastMarketDepths(call, callback) {
     call.request.dataType = 'marketDepth';
     await getLastMarketDatas(call, callback);
   } catch (error) {
-    logError('getLastMarketDepths(): %o', error);
+    logger.error('getLastMarketDepths(): %j', error);
     callback(error);
   }
 }
@@ -401,7 +397,7 @@ async function getLastBars(call, callback) {
     call.request.dataType = 'bar';
     await getLastMarketDatas(call, callback);
   } catch (error) {
-    logError('getLastBars(): %o', error);
+    logger.error('getLastBars(): %j', error);
     callback(error);
   }
 }
@@ -411,7 +407,7 @@ async function getLastTickers(call, callback) {
     call.request.dataType = 'ticker';
     await getLastMarketDatas(call, callback);
   } catch (error) {
-    logError('getLastTickers(): %o', error);
+    logger.error('getLastTickers(): %j', error);
     callback(error);
   }
 }
@@ -421,7 +417,7 @@ async function getLastDayBars(call, callback) {
     call.request.dataType = 'dayBar';
     await getLastMarketDatas(call, callback);
   } catch (error) {
-    logError('getLastTickers(): %o', error);
+    logger.error('getLastTickers(): %j', error);
     callback(error);
   }
 }
@@ -431,7 +427,7 @@ async function getInstruments(call, callback) {
   try {
     const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
     const betterCallID = createBetterCallID(callID, user.userid);
-    debug('getInstruments() request: %o, grpcCall from callID: %o', call.request, betterCallID);
+    logger.info('getInstruments() request: %j, grpcCall from callID: %j', call.request, betterCallID);
 
     const icePast = dataFeeds.getDataFeed('icePast');
 
@@ -448,7 +444,7 @@ async function getInstruments(call, callback) {
 
     callback(null, { instruments });
   } catch (error) {
-    logError('getInstruments(): callID: %o, %o', callID, error);
+    logger.error('getInstruments(): callID: %j, %j', callID, error);
     callback(error);
   }
 }
@@ -456,17 +452,17 @@ async function getInstruments(call, callback) {
 async function getMemoryInstruments(call, callback) {
   const callID = createCallID(call);
   try {
-    debug('token: %o', call.metadata.get('Authorization')[0]);
-    debug('sessionid: %o', call.metadata.get('sessionid')[0]);
+    logger.info('token: %j', call.metadata.get('Authorization')[0]);
+    logger.info('sessionid: %j', call.metadata.get('sessionid')[0]);
     const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
     const betterCallID = createBetterCallID(callID, user.userid);
-    debug('getMemoryInstruments() request: %o, grpcCall from callID: %o', call.request, betterCallID);
+    logger.info('getMemoryInstruments() request: %j, grpcCall from callID: %j', call.request, betterCallID);
 
     const marketData = marketDatas.getMarketData(serviceName);
     const instruments = marketData.getMemoryInstruments(call.request);
     callback(null, { instruments });
   } catch (error) {
-    logError('getMemoryInstruments(): callID: %o, %o', callID, error);
+    logger.error('getMemoryInstruments(): callID: %j, %j', callID, error);
     callback(error);
   }
 }
@@ -477,14 +473,14 @@ async function getSubscribableDataDescriptions(call, callback) {
     const user = await can.grpc(call, 'get', 'smartwinFuturesMd');
     const betterCallID = createBetterCallID(callID, user.userid);
 
-    debug('getSubscribableDataDescriptions(): grpcCall from callID: %o', betterCallID);
+    logger.info('getSubscribableDataDescriptions(): grpcCall from callID: %j', betterCallID);
     const marketData = marketDatas.getMarketData(serviceName);
 
     const subscribableDataDescriptions = await marketData.getSubscribableDataDescriptions();
 
     callback(null, { subscribableDataDescriptions });
   } catch (error) {
-    logError('getSubscribableDataDescriptions(): callID: %o, %o', callID, error);
+    logger.error('getSubscribableDataDescriptions(): callID: %j, %j', callID, error);
     callback(error);
   }
 }
@@ -497,7 +493,7 @@ async function getMySubscriptions(call, callback) {
 
     const sessionID = call.metadata.get('sessionid')[0];
 
-    debug('getMySubscriptions(): grpcCall from callID: %o', betterCallID);
+    logger.info('getMySubscriptions(): grpcCall from callID: %j', betterCallID);
 
     const subIDs = await subscriber.getSubIDsOfSessionID(sessionID);
 
@@ -505,7 +501,7 @@ async function getMySubscriptions(call, callback) {
 
     callback(null, { subscriptions });
   } catch (error) {
-    logError('getMySubscriptions(): callID: %o, %o', callID, error);
+    logger.error('getMySubscriptions(): callID: %j, %j', callID, error);
     callback(error);
   }
 }

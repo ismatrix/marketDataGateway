@@ -1,2 +1,3 @@
 require('babel-register');
-require('./manual');
+//require('./manual');
+require('./test1');

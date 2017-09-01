@@ -1,12 +1,9 @@
-import createDebug from 'debug';
 import createIceLiveDataFeed from 'sw-datafeed-icelive';
 import createIcePastDataFeed from 'sw-datafeed-icepast';
 import createMongodbDataFeed from 'sw-datafeed-mongodb';
+import logger from 'sw-common';
 
 // 封装链接
-const logError = createDebug('app:dataFeed:error');
-logError.log = console.error.bind(console);
-
 export default function createDataFeed(config) {
   try {
     const {
@@ -38,7 +35,7 @@ export default function createDataFeed(config) {
 
         return liveDataTypeNames;
       } catch (error) {
-        logError('getLiveDataTypeNames(): %o', error);
+        logger.error('getLiveDataTypeNames(): %j', error);
         throw error;
       }
     };
@@ -48,7 +45,7 @@ export default function createDataFeed(config) {
         const subID = `${name}:${md.dataType}:${md.resolution}:${md.symbol}`;
         return subID;
       } catch (error) {
-        logError('mdToSubID(): %o', error);
+        logger.error('mdToSubID(): %j', error);
         throw error;
       }
     };
@@ -62,7 +59,7 @@ export default function createDataFeed(config) {
 
     return Object.assign(dataFeed, dataFeedBase);
   } catch (error) {
-    logError('createDataFeed(): %o', error);
+    logger.error('createDataFeed(): %j', error);
     throw error;
   }
 }

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/app",
     "test": "mocha $(find test -name '*test.js') --compilers js:babel-register",
-    "compile": "rm -rf ./dist && babel src --out-dir dist --copy-files"
+    "compile": "rm -rf ./dist && babel src --out-dir dist --copy-files && for i in `ls node_modules/ | grep sw`; do cd node_modules/$i && npm run compile; cd ../../; done"
   },
   "repository": {
     "type": "git",
@@ -30,18 +30,18 @@
     "babel-register": "^6.24.1",
     "bluebird": "^3.5.0",
     "commander": "^2.10.0",
-    "debug": "^2.6.6",
     "grpc": "^1.3.9",
     "lodash": "^4.17.4",
     "node-schedule": "^1.2.1",
     "redis": "^2.7.1",
-    "sw-can": "git+ssh://git@code.invesmart.net:8800/npm/sw-can.git#v1.0.5",
-    "sw-datafeed-icelive": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icelive.git#v1.0.21",
-    "sw-datafeed-icepast": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icepast.git#v1.0.22",
-    "sw-datafeed-mongodb": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-mongodb.git#v1.0.6",
-    "sw-grpc-client": "git+ssh://git@code.invesmart.net:8800/npm/sw-grpc-client.git#v1.1.35",
-    "sw-mongodb": "git+ssh://git@code.invesmart.net:8800/npm/sw-mongodb.git#v1.0.6",
-    "sw-mongodb-crud": "git+ssh://git@code.invesmart.net:8800/npm/sw-mongodb-crud#v2.0.17",
+    "sw-can": "git+ssh://git@code.invesmart.net:8800/npm/sw-can.git#v1.0.6",
+    "sw-common": "git+ssh://git@code.invesmart.net:8800/npm/sw-common.git#v1.0.1",
+    "sw-datafeed-icelive": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icelive.git#v1.0.23",
+    "sw-datafeed-icepast": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icepast.git#v1.0.23",
+    "sw-datafeed-mongodb": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-mongodb.git#v1.0.7",
+    "sw-grpc-client": "git+ssh://git@code.invesmart.net:8800/npm/sw-grpc-client.git#v1.1.36",
+    "sw-mongodb": "git+ssh://git@code.invesmart.net:8800/npm/sw-mongodb.git#v1.0.7",
+    "sw-mongodb-crud": "git+ssh://git@code.invesmart.net:8800/npm/sw-mongodb-crud#v2.0.19",
     "through2": "^2.0.3"
   }
 }

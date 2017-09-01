@@ -1,12 +1,9 @@
-import createDebug from 'debug';
 import createDataFeed from './dataFeed';
 import subscriber from './subscriber';
 import { redis } from './redis';
+import logger from 'sw-common'
 
 // 管理datafeed在一个队列里面
-const debug = createDebug('app:dataFeeds');
-const logError = createDebug('app:dataFeeds:error');
-logError.log = console.error.bind(console);
 
 const dataFeedsArr = [];
 
@@ -17,14 +14,14 @@ const matchDataFeed = newConfig => elem => (
 function addPublisherListenerToDataFeed(dataFeed) {
   try {
     const liveDataTypeNames = dataFeed.getLiveDataTypeNames();
-    debug('liveDataTypeNames %o', liveDataTypeNames);
+    logger.info('liveDataTypeNames %j', liveDataTypeNames);
 
     liveDataTypeNames.forEach((dataType) => {
       const listenerCount = dataFeed.listenerCount(dataType);
-      debug('%o listener(s) of %o event', listenerCount, dataType);
+      logger.info('%j listener(s) of %j event', listenerCount, dataType);
 
       if (listenerCount === 0) {
-        debug('adding listener on dataType %o of dataFeed %o', dataType, dataFeed.config.name);
+        logger.info('adding listener on dataType %j of dataFeed %j', dataType, dataFeed.config.name);
         dataFeed
           .on(dataType, (data) => {
             try {
@@ -35,15 +32,15 @@ function addPublisherListenerToDataFeed(dataFeed) {
                 .execAsync()
                 ;
             } catch (error) {
-              logError('dataFeed.on(dataType): %o', error);
+              logger.error('dataFeed.on(dataType): %j', error);
             }
           })
-          .on('error', error => logError('dataFeed.on(error): %o', error))
+          .on('error', error => logger.error('dataFeed.on(error): %j', error))
           ;
       }
     });
   } catch (error) {
-    logError('addPublisherListenerToDataFeed(): %o', error);
+    logger.error('addPublisherListenerToDataFeed(): %j', error);
     throw error;
   }
 }
@@ -52,45 +49,45 @@ function addConnectListenerToDataFeed(dataFeed) {
   try {
     const CONNECT_EVENT_NAME = 'connect:success';
     const listenerCount = dataFeed.listenerCount(CONNECT_EVENT_NAME);
-    debug('%o listener(s) of %o event', listenerCount, CONNECT_EVENT_NAME);
+    logger.info('%j listener(s) of %j event', listenerCount, CONNECT_EVENT_NAME);
 
     if (listenerCount === 0) {
-      debug('adding listener on event %o of dataFeed %o', CONNECT_EVENT_NAME, dataFeed.config.name);
+      logger.info('adding listener on event %j of dataFeed %j', CONNECT_EVENT_NAME, dataFeed.config.name);
       dataFeed
         .on(CONNECT_EVENT_NAME, async () => {
           try {
             const globalSubIDs = await redis.smembersAsync(
               redis.join(redis.SUBSINFO_SUBIDS, redis.GLOBALLYSUBSCRIBED));
-            debug('globalSubIDs %o', globalSubIDs);
+            logger.info('globalSubIDs %j', globalSubIDs);
             globalSubIDs
               .filter(subID => redis.getKeyParts(redis.SUBID, subID, 'dataFeedName')[0] === dataFeed.config.name)
               .forEach(async (newSubID) => {
                 try {
                   const sub = subscriber.subIDToSub(newSubID);
                   await dataFeed.subscribe(sub);
-                  debug('subscribed to %o on dataFeed reconnect', sub);
+                  logger.info('subscribed to %j on dataFeed reconnect', sub);
                 } catch (error) {
-                  logError('needSubscribeSubIDs.forEach(): %o', error);
+                  logger.error('needSubscribeSubIDs.forEach(): %j', error);
                 }
               });
           } catch (error) {
-            logError('dataFeed.on(%o): %o', CONNECT_EVENT_NAME, error);
+            logger.error('dataFeed.on(%j): %j', CONNECT_EVENT_NAME, error);
           }
         })
-        .on('error', error => logError('dataFeed.on(error): %o', error))
+        .on('error', error => logger.error('dataFeed.on(error): %j', error))
         ;
     }
   } catch (error) {
-    logError('addPublisherListenerToDataFeed(): %o', error);
+    logger.error('addPublisherListenerToDataFeed(): %j', error);
     throw error;
   }
 }
 
 async function addDataFeed(config) {
   try {
-    debug('addDataFeed() config %o', config);
+    logger.info('addDataFeed() config %j', config);
     const existingDataFeed = dataFeedsArr.find(matchDataFeed(config));
-    debug('existingDataFeed %o', existingDataFeed);
+    logger.info('existingDataFeed %j', existingDataFeed);
     if (existingDataFeed !== undefined) return;
 
     const newDataFeed = createDataFeed(config);
@@ -105,7 +102,7 @@ async function addDataFeed(config) {
 
     dataFeedsArr.push(newDataFeed);
   } catch (error) {
-    logError('addDataFeed(): %o', error);
+    logger.error('addDataFeed(): %j', error);
     throw error;
   }
 }
@@ -117,7 +114,7 @@ function getDataFeed(dataFeedName) {
 
     throw new Error('dataFeed not found');
   } catch (error) {
-    logError('getDataFeed(): %o', error);
+    logger.error('getDataFeed(): %j', error);
     throw error;
   }
 }
@@ -127,7 +124,7 @@ function getDataFeedsByNames(dataFeedNames) {
     const theDataFeeds = dataFeedsArr.filter(df => dataFeedNames.includes(df.config.name));
     return theDataFeeds;
   } catch (error) {
-    logError('getDataFeedsByNames(): %o', error);
+    logger.error('getDataFeedsByNames(): %j', error);
     throw error;
   }
 }
