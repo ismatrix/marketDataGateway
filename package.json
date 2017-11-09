@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@code.invesmart.net:8800/smartwin/marketDataGateway.git"
+    "url": "ssh://git@git.quantowin.com:8800/smartwin/marketDataGateway.git"
   },
   "author": "",
   "license": "ISC",
@@ -35,13 +35,13 @@
     "lodash": "^4.17.4",
     "node-schedule": "^1.2.1",
     "redis": "^2.7.1",
-    "sw-can": "git+ssh://git@code.invesmart.net:8800/npm/sw-can.git#v1.0.5",
-    "sw-datafeed-icelive": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icelive.git#v1.0.21",
-    "sw-datafeed-icepast": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-icepast.git#v1.0.22",
-    "sw-datafeed-mongodb": "git+ssh://git@code.invesmart.net:8800/npm/sw-datafeed-mongodb.git#v1.0.6",
-    "sw-grpc-client": "git+ssh://git@code.invesmart.net:8800/npm/sw-grpc-client.git#v1.1.35",
-    "sw-mongodb": "git+ssh://git@code.invesmart.net:8800/npm/sw-mongodb.git#v1.0.6",
-    "sw-mongodb-crud": "git+ssh://git@code.invesmart.net:8800/npm/sw-mongodb-crud#v2.0.17",
+    "sw-can": "git+ssh://git@git.quantowin.com:8800/npm/sw-can.git#v1.0.5",
+    "sw-datafeed-icelive": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-icelive.git#v1.0.21",
+    "sw-datafeed-icepast": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-icepast.git#v1.0.22",
+    "sw-datafeed-mongodb": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-mongodb.git#v1.0.6",
+    "sw-grpc-client": "git+ssh://git@git.quantowin.com:8800/npm/sw-grpc-client.git#v1.1.38",
+    "sw-mongodb": "git+ssh://git@git.quantowin.com:8800/npm/sw-mongodb.git#v1.0.6",
+    "sw-mongodb-crud": "git+ssh://git@git.quantowin.com:8800/npm/sw-mongodb-crud#v2.0.17",
     "through2": "^2.0.3"
   }
 }
