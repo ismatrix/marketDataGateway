@@ -12,7 +12,7 @@ const sslCaCrt = fs.readFileSync(sslCaCrtPath);
 const md = createGrpcClient({
   serviceName: 'smartwinFuturesMd',
   server: {
-    // ip: 'markets.invesmart.net',
+    // ip: 'markets.quantowin.com',
     ip: 'localhost',
     port: '50052',
   },

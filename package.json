@@ -40,8 +40,8 @@
     "sw-datafeed-icepast": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-icepast.git#v1.0.22",
     "sw-datafeed-mongodb": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-mongodb.git#v1.0.6",
     "sw-grpc-client": "git+ssh://git@git.quantowin.com:8800/npm/sw-grpc-client.git#v1.1.38",
-    "sw-mongodb": "git+ssh://git@git.quantowin.com:8800/npm/sw-mongodb.git#v1.0.6",
-    "sw-mongodb-crud": "git+ssh://git@git.quantowin.com:8800/npm/sw-mongodb-crud#v2.0.17",
+    "sw-mongodb": "git+ssh://git@git.quantowin.com:8800/npm/sw-mongodb.git#v1.0.7",
+    "sw-mongodb-crud": "git+ssh://git@git.quantowin.com:8800/npm/sw-mongodb-crud#v2.0.20",
     "through2": "^2.0.3"
   }
 }

@@ -9,7 +9,7 @@ npm install
 
 ## Prod
 ```
-NODE_ENV=production DEBUG_FD=1 DEBUG=*,-babel DEBUG_COLORS=true pm2 start src/index.js --log-date-format="MM-DD HH:mm:ss" --name marketDataGateway -- --credentials-name markets.invesmart.net
+NODE_ENV=production DEBUG_FD=1 DEBUG=*,-babel DEBUG_COLORS=true pm2 start src/index.js --log-date-format="MM-DD HH:mm:ss" --name marketDataGateway -- --credentials-name markets.quantowin.com
 ```
 
 ## 重启
