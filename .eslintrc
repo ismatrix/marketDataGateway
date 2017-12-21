@@ -14,6 +14,7 @@
     "consistent-return": 0,
     "generator-star-spacing": 0,
     "require-yield": 0,
+    "no-restricted-syntax": [0, "ForInStatement", "ForOfStatement", "WithStatement"],
     "no-underscore-dangle": ["error", { "allow": ["_id"] }],
     no-mixed-operators: ["error", {"allowSamePrecedence": true}],
   }

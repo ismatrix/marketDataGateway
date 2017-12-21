@@ -1,4 +1,4 @@
-import createDebug from 'debug';
+import logger from 'sw-common';
 import fs from 'fs';
 import path from 'path';
 import grpc from 'grpc';
@@ -16,34 +16,34 @@ program
   .option('-c, --credentials-name [value]', 'the name of the server ssl credentials .crt/.key')
   .parse(process.argv);
 
-const grpcUrl = `${config.grpcConfig.ip}:${config.grpcConfig.port}`;
-const debug = createDebug(`app:main:${grpcUrl}`);
-const logError = createDebug(`app:main:${grpcUrl}:error`);
-logError.log = console.error.bind(console);
-process
-  .on('uncaughtException', error => logError('process.on(uncaughtException): %o', error))
-  .on('warning', warning => logError('process.on(warning): %o', warning))
-  ;
+// const grpcUrl = `${config.grpcConfig.ip}:${config.grpcConfig.port}`;
+// const logger.debug = createDebug(`app:main:${grpcUrl}`);
+// const logger.error = createDebug(`app:main:${grpcUrl}:error`);
+// logger.error.log = console.error.bind(console);
+// process
+//   .on('uncaughtException', error => logger.error('process.on(uncaughtException): %j', error))
+//   .on('warning', warning => logger.error('process.on(warning): %j', warning))
+//   ;
 
 async function init() {
   try {
     const initMarketDatasReport = await Promise.all(config.marketDataConfigs.map(
       conf => marketDatas.addMarketData(conf).catch((error) => {
-        logError('init1(): %o', error);
+        logger.error('init1(): %j', error);
         return `failed adding ${conf.serviceName}`;
       })),
     );
-    debug('initMarketDatasReport %o', initMarketDatasReport);
+    logger.debug('initMarketDatasReport %j', initMarketDatasReport);
   } catch (error) {
-    logError('init(): %o', error);
+    logger.error('init(): %j', error);
   }
 }
 
 async function main() {
   try {
-    debug('app.js main');
-    debug('main config %o', config);
-    debug('marketDataConfigs %o', config.marketDataConfigs);
+    logger.debug('app.js main');
+    logger.debug('main config %j', config);
+    logger.debug('marketDataConfigs %j', config.marketDataConfigs);
 
     const dbInstance = await mongodb.getDB(config.mongodbURL);
     crud.setDB(dbInstance);
@@ -78,7 +78,7 @@ async function main() {
 
     // load unique marketData interface service
     config.marketDataConfigs.forEach((mdConfig) => {
-      debug('config %o', config);
+      logger.debug('config %j', config);
       server.addService(
         marketDataProto[mdConfig.serviceName][upperFirst(mdConfig.serviceName)].service,
         marketDataGatewayGrpc[mdConfig.serviceName],
@@ -89,7 +89,7 @@ async function main() {
     server.bind(`${config.grpcConfig.ip}:60052`, grpc.ServerCredentials.createInsecure());
     server.start();
   } catch (error) {
-    logError('main(): %o', error);
+    logger.error('main(): %j', error);
   }
 }
 main();

@@ -1,12 +1,9 @@
-import createDebug from 'debug';
+import logger from 'sw-common';
 import { reduce } from 'lodash';
 import schedule from 'node-schedule';
 import dataFeeds from './dataFeeds';
 
 // 封装ｄａｔａｆｅｅｄｓ
-const debug = createDebug('app:marketData');
-const logError = createDebug('app:marketData:error');
-logError.log = console.error.bind(console);
 
 const matchDataDescription = newDesc => desc => (
   desc.mode === newDesc.mode
@@ -26,7 +23,7 @@ export default function createMarketData(config) {
           isTrading: [1],
           productClasses: ['1'],
         });
-        debug('dbInstruments.length: %o', dbInstruments.length);
+        logger.debug('dbInstruments.length: %j', dbInstruments.length);
         // db instrumentname === null not compatible with proto3
         memoryInstruments = dbInstruments.map((ins) => {
           if (ins.instrumentname === null) delete ins.instrumentname;
@@ -34,9 +31,9 @@ export default function createMarketData(config) {
           delete ins.updatedate;
           return ins;
         });
-        debug('memoryInstruments.length: %o', memoryInstruments.length);
+        logger.debug('memoryInstruments.length: %j', memoryInstruments.length);
       } catch (error) {
-        logError('updateMemoryInstruments(): %o', error);
+        logger.error('updateMemoryInstruments(): %j', error);
         throw error;
       }
     };
@@ -45,15 +42,15 @@ export default function createMarketData(config) {
     const init = async () => {
       try {
         const addDataFeedPromises = config.dataFeeds
-          .map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig).catch(error => logError('failed adding dataFeed %o with error: %o', dataFeedConfig.name, error)))
+          .map(dataFeedConfig => dataFeeds.addDataFeed(dataFeedConfig).catch(error => logger.error('failed adding dataFeed %j with error: %j', dataFeedConfig.name, error)))
           ;
 
-        debug('connectPromises %o', addDataFeedPromises);
+        logger.debug('connectPromises %j', addDataFeedPromises);
         const initReport = await Promise.all(addDataFeedPromises);
         await updateMemoryInstruments();
         return initReport;
       } catch (error) {
-        logError('init(): %o', error);
+        logger.error('init(): %j', error);
         throw error;
       }
     };
@@ -64,7 +61,7 @@ export default function createMarketData(config) {
         const ownDataFeeds = dataFeeds.getDataFeedsByNames(dataFeedNames);
         return ownDataFeeds;
       } catch (error) {
-        logError('getOwnDataFeeds(): %o', error);
+        logger.error('getOwnDataFeeds(): %j', error);
         throw error;
       }
     };
@@ -74,7 +71,7 @@ export default function createMarketData(config) {
         const ownDataFeedConfigs = getOwnDataFeeds().map(conf => conf.config);
         return ownDataFeedConfigs;
       } catch (error) {
-        logError('getOwnDataFeedConfigs(): %o', error);
+        logger.error('getOwnDataFeedConfigs(): %j', error);
         throw error;
       }
     };
@@ -87,7 +84,7 @@ export default function createMarketData(config) {
         });
         throw new Error('dataType not found in own dataFeed configs');
       } catch (error) {
-        logError('dataTypeToDataFeedName(): %o', error);
+        logger.error('dataTypeToDataFeedName(): %j', error);
         throw error;
       }
     };
@@ -99,7 +96,7 @@ export default function createMarketData(config) {
         if (dataFeedConfig) return true;
         return false;
       } catch (error) {
-        logError('isExistingDataDescription(): %o', error);
+        logger.error('isExistingDataDescription(): %j', error);
         throw error;
       }
     };
@@ -110,11 +107,11 @@ export default function createMarketData(config) {
         dataDescription.dataType = sub.dataType;
         dataDescription.resolution = sub.resolution;
         dataDescription.mode = (sub.startDate || sub.endDate) ? 'past' : 'live';
-        // debug('dataDescription: %o', dataDescription);
+        // logger.debug('dataDescription: %j', dataDescription);
 
         return dataDescription;
       } catch (error) {
-        logError('subscriptionToDataDescription(): %o', error);
+        logger.error('subscriptionToDataDescription(): %j', error);
         throw error;
       }
     };
@@ -125,7 +122,7 @@ export default function createMarketData(config) {
         if (!isExistingDataDescription(dataDescription)) return false;
         return true;
       } catch (error) {
-        logError('isValidSubscription(): %o', error);
+        logger.error('isValidSubscription(): %j', error);
         throw error;
       }
     };
@@ -140,7 +137,7 @@ export default function createMarketData(config) {
         const flatDataDescription = reduce(dataDescription, (acc, cur) => acc.concat(cur, ':'), '');
         throw new Error(`dataDescription ${flatDataDescription} not found in dataFeeds config`);
       } catch (error) {
-        logError('getDataFeedConfigByDataDescription(): %o', error);
+        logger.error('getDataFeedConfigByDataDescription(): %j', error);
         throw error;
       }
     };
@@ -151,7 +148,7 @@ export default function createMarketData(config) {
         const dataFeed = dataFeeds.getDataFeed(dataFeedConfig.name);
         return dataFeed;
       } catch (error) {
-        logError('getDataFeedByDataDescription(): %o', error);
+        logger.error('getDataFeedByDataDescription(): %j', error);
         throw error;
       }
     };
@@ -166,7 +163,7 @@ export default function createMarketData(config) {
         const dataFeed = getDataFeedByDataDescription(dataDescription);
         return dataFeed;
       } catch (error) {
-        logError('getDataFeedBySubscription(): %o', error);
+        logger.error('getDataFeedBySubscription(): %j', error);
         throw error;
       }
     };
@@ -183,7 +180,7 @@ export default function createMarketData(config) {
 
         throw new Error('No dataFeed for this dataType');
       } catch (error) {
-        logError('getDataFeedByDataType(): %o', error);
+        logger.error('getDataFeedByDataType(): %j', error);
         throw error;
       }
     };
@@ -196,7 +193,7 @@ export default function createMarketData(config) {
           ;
         return dataDescriptions;
       } catch (error) {
-        logError('getSubscribableDataDescriptions(): %o', error);
+        logger.error('getSubscribableDataDescriptions(): %j', error);
         throw error;
       }
     };
@@ -214,7 +211,7 @@ export default function createMarketData(config) {
         ));
         return filteredMemoryInstruments;
       } catch (error) {
-        logError('getMemoryInstruments(): %o', error);
+        logger.error('getMemoryInstruments(): %j', error);
         throw error;
       }
     };
@@ -232,7 +229,7 @@ export default function createMarketData(config) {
     const marketData = marketDataBase;
     return marketData;
   } catch (error) {
-    debug('createMarketData(): %o', error);
+    logger.debug('createMarketData(): %j', error);
     throw error;
   }
 }

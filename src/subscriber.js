@@ -1,10 +1,6 @@
-import createDebug from 'debug';
+import logger from 'sw-common';
 import { difference } from 'lodash';
 import { redis, redisSub } from './redis';
-
-const debug = createDebug('app:subscriber');
-const logError = createDebug('app:subscriber:error');
-logError.log = console.error.bind(console);
 
 function subToSubID(dataFeedName, sub) {
   const subID = redis.joinSubKeys(dataFeedName, sub.dataType, sub.resolution, sub.symbol);
@@ -37,18 +33,18 @@ async function subscribeDataFeed(sub, dataFeed) {
 
     return sub;
   } catch (error) {
-    logError('subscribeDataFeed(): %o', error);
+    logger.error('subscribeDataFeed(): %j', error);
     throw error;
   }
 }
 
 async function unsubscribeDataFeed(sub, dataFeed) {
   try {
-    debug('to be completed %o %o', sub, dataFeed);
+    logger.debug('to be completed %j %j', sub, dataFeed);
 
     return sub;
   } catch (error) {
-    logError('unsubscribeDataFeed(): %o', error);
+    logger.error('unsubscribeDataFeed(): %j', error);
     throw error;
   }
 }
@@ -56,11 +52,11 @@ async function unsubscribeDataFeed(sub, dataFeed) {
 async function subscribeRedis(subID) {
   try {
     const subscribeRedisResult = await redisSub.subscribeAsync(redis.join(redis.SUBID_MD, subID));
-    debug('subscribeRedisResult %o', subscribeRedisResult);
+    logger.debug('subscribeRedisResult %j', subscribeRedisResult);
 
     return subscribeRedisResult;
   } catch (error) {
-    logError('subscribeRedis(): %o', error);
+    logger.error('subscribeRedis(): %j', error);
     throw error;
   }
 }
@@ -69,11 +65,11 @@ async function subscribeStream(subID, sessionID) {
   try {
     const subscribeStreamResult =
       await redis.saddAsync(redis.join(redis.SUBID_SESSIONIDS, subID), sessionID);
-    if (subscribeStreamResult) debug('added %o to %o', sessionID, redis.join(redis.SUBID_SESSIONIDS, subID));
+    if (subscribeStreamResult) logger.debug('added %j to %j', sessionID, redis.join(redis.SUBID_SESSIONIDS, subID));
 
     return subscribeStreamResult;
   } catch (error) {
-    logError('subscribeStream(): %o', error);
+    logger.error('subscribeStream(): %j', error);
     throw error;
   }
 }
@@ -85,7 +81,7 @@ async function unsubscribeStream(subID, sessionID) {
 
     return unsubscribeStreamResult;
   } catch (error) {
-    logError('unsubscribeStream(): %o', error);
+    logger.error('unsubscribeStream(): %j', error);
     throw error;
   }
 }
@@ -93,11 +89,11 @@ async function unsubscribeStream(subID, sessionID) {
 async function unsubscribeRedis(subID) {
   try {
     const subscribeRedisResult = await redisSub.subscribeAsync(redis.join(redis.SUBID_MD, subID));
-    debug('subscribeRedisResult %o', subscribeRedisResult);
+    logger.debug('subscribeRedisResult %j', subscribeRedisResult);
 
     return subscribeRedisResult;
   } catch (error) {
-    logError('unsubscribeRedis(): %o', error);
+    logger.error('unsubscribeRedis(): %j', error);
     throw error;
   }
 }
@@ -121,14 +117,14 @@ async function removeOrphanSessionIDs(openStreamSessionIDs) {
     const redisOrphanSessionIDs = difference(allRedisSessionIDs, openStreamSessionIDs);
     if (redisOrphanSessionIDs.length === 0) return;
 
-    debug('redisOrphanSessionIDs %o', redisOrphanSessionIDs);
+    logger.debug('redisOrphanSessionIDs %j', redisOrphanSessionIDs);
 
     const removeReport = await redis.multi(allKeysHavingSessionIDs.map(key => (['SREM', key, ...redisOrphanSessionIDs])))
       .execAsync()
       ;
-    debug('removeReport %o', removeReport);
+    logger.debug('removeReport %j', removeReport);
   } catch (error) {
-    logError('removeOrphanSessionIDs(): %o', error);
+    logger.error('removeOrphanSessionIDs(): %j', error);
     throw error;
   }
 }
@@ -147,10 +143,10 @@ async function removeSessionIDFromAllSubIDsByDataType(sessionID, dataType) {
       if (isRemovedSessionID[index]) accu.push(curr.substr(redis.SUBID_SESSIONIDS.length + 1));
       return accu;
     }, []);
-    debug('stream %o left these rooms %o', sessionID, removedFromSids);
+    logger.debug('stream %j left these rooms %j', sessionID, removedFromSids);
     return removedFromSids;
   } catch (error) {
-    logError('removeSessionIDFromAllSubIDsByDataType(): %o', error);
+    logger.error('removeSessionIDFromAllSubIDsByDataType(): %j', error);
     throw error;
   }
 }
@@ -168,11 +164,11 @@ async function getSubIDsOfSessionID(sessionID) {
       if (isMember[index]) acc.push(cur.substr(redis.SUBID_SESSIONIDS.length + 1));
       return acc;
     }, []);
-    debug('subIDsOfSessionID %o', subIDsOfSessionID);
+    logger.debug('subIDsOfSessionID %j', subIDsOfSessionID);
 
     return subIDsOfSessionID;
   } catch (error) {
-    logError('getSubIDsOfSessionID(): %o', error);
+    logger.error('getSubIDsOfSessionID(): %j', error);
     throw error;
   }
 }
@@ -189,11 +185,11 @@ async function getSubIDsOfSessionID(sessionID) {
 //       redisResult[1].map(elem => elem.substr(redis.SUBID_MD.length + 1));
 //
 //     const globallyNotSubscribedSubIDs = difference(globalSubIDs, globallySubscribedSubIDs);
-//     debug('globallyNotSubscribedSubIDs %o', globallyNotSubscribedSubIDs);
+//     logger.debug('globallyNotSubscribedSubIDs %j', globallyNotSubscribedSubIDs);
 //
 //     return globallyNotSubscribedSubIDs;
 //   } catch (error) {
-//     logError('getGloballyNotSubscribedSubIDs(): %o', error);
+//     logger.error('getGloballyNotSubscribedSubIDs(): %j', error);
 //     throw error;
 //   }
 // }
@@ -214,10 +210,10 @@ async function getSubIDsOfSessionID(sessionID) {
 //       return accu;
 //     }, []);
 //
-//     debug('locallyEmptySubIDs %o', locallyEmptySubIDs);
+//     logger.debug('locallyEmptySubIDs %j', locallyEmptySubIDs);
 //     return locallyEmptySubIDs;
 //   } catch (error) {
-//     logError('getLocallyEmptySubIDs(): %o', error);
+//     logger.error('getLocallyEmptySubIDs(): %j', error);
 //     throw error;
 //   }
 // }

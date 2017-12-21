@@ -1,9 +1,9 @@
-import createDebug from 'debug';
+import logger from 'sw-common';
 import createMarketData from './marketData';
 
 // 管理 marketData 在一个队列里面
-const logError = createDebug('app:marketDatas:error');
-logError.log = console.error.bind(console);
+// const logger.error = createDebug('app:marketDatas:error');
+// logger.error.log = console.error.bind(console);
 
 const marketDatasArr = [];
 
@@ -22,7 +22,7 @@ async function addMarketData(config) {
 
     marketDatasArr.push(newMarketData);
   } catch (error) {
-    logError('addMarketData(): %o', error);
+    logger.error('addMarketData(): %j', error);
     throw error;
   }
 }
@@ -37,7 +37,7 @@ function getMarketData(marketDataName) {
 
     throw new Error('marketData not found');
   } catch (error) {
-    logError('getMarketData(): %o', error);
+    logger.error('getMarketData(): %j', error);
     throw error;
   }
 }
@@ -55,7 +55,7 @@ function getMarketDatasConfigs() {
     );
     return marketDatasConfigs;
   } catch (error) {
-    logError('getMarketDatasConfigs(): %o', error);
+    logger.error('getMarketDatasConfigs(): %j', error);
     throw error;
   }
 }
