@@ -36,7 +36,8 @@ const productionConfig = {
             { dataType: 'dayBar', resolution: 'day', mode: 'past' },
           ],
           server: {
-            ip: 'quantowin.com',
+            // ip: 'markets.quantowin.com',
+            ip: '120.76.98.94',
             port: '10101',
           },
         },
@@ -50,7 +51,7 @@ const productionConfig = {
             { dataType: 'dayBar', resolution: 'day', mode: 'live' },
           ],
           server: {
-            ip: 'quantowin.com',
+            ip: 'markets.quantowin.com',
             port: '10001',
           },
         },

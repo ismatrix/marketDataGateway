@@ -28,3 +28,6 @@ node_modules
 
 # ignore this test file
 myTest.js
+
+# package-lock.json
+package-lock.json
