@@ -30,7 +30,7 @@
     "babel-register": "^6.24.1",
     "bluebird": "^3.5.0",
     "commander": "^2.10.0",
-    "grpc": "^1.3.9",
+    "grpc": "1.4.1",
     "lodash": "^4.17.4",
     "node-schedule": "^1.2.1",
     "redis": "^2.7.1",
@@ -39,7 +39,7 @@
     "sw-datafeed-icelive": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-icelive.git#v1.1.0",
     "sw-datafeed-icepast": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-icepast.git#v1.1.0",
     "sw-datafeed-mongodb": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-mongodb.git#v1.1.0",
-    "sw-grpc-client": "git+ssh://git@git.quantowin.com:8800/npm/sw-grpc-client.git#v1.2.0",
+    "sw-grpc-client": "git+ssh://git@git.quantowin.com:8800/npm/sw-grpc-client.git#v1.2.1",
     "sw-mongodb": "git+ssh://git@git.quantowin.com:8800/npm/sw-mongodb.git#v1.1.0",
     "sw-mongodb-crud": "git+ssh://git@git.quantowin.com:8800/npm/sw-mongodb-crud#v2.1.0",
     "through2": "^2.0.3"
