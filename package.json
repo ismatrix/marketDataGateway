@@ -1,6 +1,6 @@
 {
   "name": "market-data-gateway",
-  "version": "1.1.0",
+  "version": "3.0.0",
   "description": "Market data gateway",
   "main": "dist/app.js",
   "scripts": {
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@git.quantowin.com:8800/smartwin/marketDataGateway.git"
+    "url": "ssh://git@github.com:ismatrix/marketDataGateway.git"
   },
   "author": "",
   "license": "ISC",
@@ -34,14 +34,14 @@
     "lodash": "^4.17.4",
     "node-schedule": "^1.2.1",
     "redis": "^2.7.1",
-    "sw-common": "git+ssh://git@git.quantowin.com:8800/npm/sw-common.git#v1.1.0",
-    "sw-can": "git+ssh://git@git.quantowin.com:8800/npm/sw-can.git#v1.1.0",
-    "sw-datafeed-icelive": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-icelive.git#v1.1.0",
-    "sw-datafeed-icepast": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-icepast.git#v1.1.0",
-    "sw-datafeed-mongodb": "git+ssh://git@git.quantowin.com:8800/npm/sw-datafeed-mongodb.git#v1.1.0",
-    "sw-grpc-client": "git+ssh://git@git.quantowin.com:8800/npm/sw-grpc-client.git#v1.2.2",
-    "sw-mongodb": "git+ssh://git@git.quantowin.com:8800/npm/sw-mongodb.git#v1.1.0",
-    "sw-mongodb-crud": "git+ssh://git@git.quantowin.com:8800/npm/sw-mongodb-crud#v2.1.0",
+    "sw-common": "git+ssh://git@github.com:ismatrix/sw-common.git#v3.0.0",
+    "sw-can": "git+ssh://git@github.com:ismatrix/sw-can.git#v3.0.0",
+    "sw-datafeed-icelive": "git+ssh://git@github.com:ismatrix/sw-datafeed-icelive.git#v3.0.0",
+    "sw-datafeed-icepast": "git+ssh://git@github.com:ismatrix/sw-datafeed-icepast.git#v3.0.0",
+    "sw-datafeed-mongodb": "git+ssh://git@github.com:ismatrix/sw-datafeed-mongodb.git#v3.0.0",
+    "sw-grpc-client": "git+ssh://git@github.com:ismatrix/sw-grpc-client.git#v3.0.0",
+    "sw-mongodb": "git+ssh://git@github.com:ismatrix/sw-mongodb.git#v3.0.0",
+    "sw-mongodb-crud": "git+ssh://git@github.com:ismatrix/sw-mongodb-crud#v3.0.0",
     "through2": "^2.0.3"
   }
 }
