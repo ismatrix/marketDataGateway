@@ -52,7 +52,7 @@ const productionConfig = {
           ],
           server: {
             // ip: 'markets.quantowin.com',
-            ip: '172.19.152.114',
+            ip: '10.0.0.88',
             port: '10001',
           },
         },
