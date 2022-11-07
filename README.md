@@ -9,7 +9,7 @@ This is the unified gateway to smartwin Market Data providers.
     <img src ="https://img.shields.io/github/license/vnpy/vnpy.svg?color=orange"/>
 </p>
 
-商品期货行情服务，上游通过 [zeroice](https://zeroc.com/) 接入 [china-future-exchange-ctp](https://github.com/ismatrix/china-future-exchange-ctp)， 通过[gRPC]对外提供实时行情、历史行情服务
+商品期货行情服务，上游通过 [zeroice](https://zeroc.com/) 接入 [china-future-exchange-ctp](https://github.com/ismatrix/china-future-exchange-ctp)， 通过[gRPC](https://grpc.io/)对外提供实时行情、历史行情服务
 
 ## Install
 ```https://github.com/ismatrix/china-future-exchange-ctp
