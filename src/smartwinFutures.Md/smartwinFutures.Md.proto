@@ -83,6 +83,7 @@ message Instrument {
   int32 prerank = 36;
   int32 rank = 37;
   string update_rank_date = 38;
+  int32 volume = 39;
 }
 
 message Subscription {
